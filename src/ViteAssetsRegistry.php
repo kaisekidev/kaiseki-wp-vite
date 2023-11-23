@@ -18,6 +18,7 @@ use Kaiseki\WordPress\Vite\ManifestFileLoader\ManifestFileLoaderInterface;
 use Kaiseki\WordPress\Vite\OutputFilter\ModuleTypeScriptOutputFilter;
 
 use function add_action;
+use function array_map;
 use function array_merge;
 use function array_reduce;
 use function count;
@@ -79,7 +80,11 @@ class ViteAssetsRegistry implements HookCallbackProviderInterface
      */
     public function registerAssets(AssetManager $assetManager): void
     {
-        $assets = $this->loadAssets();
+        $assets = array_map(
+            /** @phpstan-ignore-next-line */
+            fn (Asset $asset): Asset => $asset->disableAutodiscoverVersion(),
+            $this->loadAssets()
+        );
 
         $filteredAsset = $this->filterAssets($assets);
 
