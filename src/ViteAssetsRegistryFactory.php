@@ -53,6 +53,8 @@ final class ViteAssetsRegistryFactory
                : new StyleFilterPipeline(...Config::initClassMap($container, $value)),
             $styleSettings,
         );
+        /** @var class-string<DirectoryUrlInterface>|DirectoryUrlInterface $directoryUrl */
+        $directoryUrl = $config->get('vite/directory_url', '', true);
 
         return new ViteAssetsRegistry(
             $container->get(ViteServerInterface::class),
@@ -62,7 +64,7 @@ final class ViteAssetsRegistryFactory
             $styleFilter === [] ? null : new StyleFilterPipeline(...Config::initClassMap($container, $styleFilter)),
             $styles,
             $config->bool('vite/autoload', false),
-            $container->get(DirectoryUrlInterface::class),
+            Config::initClass($container, $directoryUrl),
             $config->string('vite/handle_prefix', ''),
             $config->bool('vite/es_modules', true),
         );
