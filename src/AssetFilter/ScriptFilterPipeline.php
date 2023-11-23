@@ -17,15 +17,15 @@ final class ScriptFilterPipeline implements ScriptFilterInterface
         $this->filter = $filter;
     }
 
-    public function __invoke(?Script $script, ViteServerInterface $viteClient): ?Script
+    public function __invoke(Script $script, ViteServerInterface $viteClient): ?Script
     {
         foreach ($this->filter as $filter) {
-            $script = ($filter)($script, $viteClient);
             if ($script === null) {
                 return null;
             }
+            /** @phpstan-var Script|null $script */
+            $script = ($filter)($script, $viteClient);
         }
-        // @phpstan-ignore-next-line
         return $script;
     }
 }

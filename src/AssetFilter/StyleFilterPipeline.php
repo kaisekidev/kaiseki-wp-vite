@@ -17,13 +17,14 @@ final class StyleFilterPipeline implements StyleFilterInterface
         $this->filter = $filter;
     }
 
-    public function __invoke(?Style $style, ViteServerInterface $viteClient): ?Style
+    public function __invoke(Style $style, ViteServerInterface $viteClient): ?Style
     {
         foreach ($this->filter as $filter) {
-            $style = ($filter)($style, $viteClient);
             if ($style === null) {
                 return null;
             }
+            /** @phpstan-var Style|null $style */
+            $style = ($filter)($style, $viteClient);
         }
         return $style;
     }
