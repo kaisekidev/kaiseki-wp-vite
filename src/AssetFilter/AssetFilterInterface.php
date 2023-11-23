@@ -9,5 +9,5 @@ use Kaiseki\WordPress\Vite\ViteServerInterface;
 
 interface AssetFilterInterface
 {
-    public function __invoke(?Asset $asset, ViteServerInterface $viteClient): ?Asset;
+    public function __invoke(Asset $asset, ViteServerInterface $viteClient): ?Asset;
 }

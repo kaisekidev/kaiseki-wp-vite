@@ -21,6 +21,9 @@ final class ScriptFilterPipeline implements ScriptFilterInterface
     {
         foreach ($this->filter as $filter) {
             $script = ($filter)($script, $viteClient);
+            if ($script === null) {
+                return null;
+            }
         }
         // @phpstan-ignore-next-line
         return $script;

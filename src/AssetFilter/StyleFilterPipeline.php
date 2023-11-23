@@ -21,8 +21,10 @@ final class StyleFilterPipeline implements StyleFilterInterface
     {
         foreach ($this->filter as $filter) {
             $style = ($filter)($style, $viteClient);
+            if ($style === null) {
+                return null;
+            }
         }
-        // @phpstan-ignore-next-line
         return $style;
     }
 }
