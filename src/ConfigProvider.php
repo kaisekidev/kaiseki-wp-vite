@@ -16,7 +16,6 @@ final class ConfigProvider
                 'provider' => [
                     ViteAssetsRegistry::class,
                     ViteClientScriptRenderer::class,
-                    ViteServer::class,
                 ],
             ],
             'dependencies' => [

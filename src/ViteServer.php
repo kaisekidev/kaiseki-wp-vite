@@ -61,7 +61,11 @@ final class ViteServer implements ViteServerInterface
     {
         $ch = \Safe\curl_init($url);
         \Safe\curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-        \Safe\curl_exec($ch);
+        try {
+            \Safe\curl_exec($ch);
+        } catch (\Throwable) {
+            return false;
+        }
         $httpCode = \Safe\curl_getinfo($ch, CURLINFO_HTTP_CODE);
         // @phpstan-ignore-next-line
         curl_close($ch);
