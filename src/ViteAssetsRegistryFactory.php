@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Kaiseki\WordPress\Vite;
 
+use Inpsyde\Assets\OutputFilter\AssetOutputFilter;
 use Kaiseki\Config\Config;
 use Kaiseki\WordPress\Vite\AssetFilter\AssetFilterInterface;
 use Kaiseki\WordPress\Vite\AssetFilter\ScriptFilterInterface;
@@ -56,6 +57,14 @@ final class ViteAssetsRegistryFactory
         /** @var class-string<DirectoryUrlInterface>|DirectoryUrlInterface $directoryUrl */
         $directoryUrl = $config->get('vite/directory_url', '', true);
 
+        /** @var list<class-string<AssetOutputFilter>> $outputFilterClassStrings */
+        $outputFilterClassStrings = $config->array('vite/output_filters', []);
+        /** @var array<string, AssetOutputFilter> $outputFilters */
+        $outputFilters = [];
+        foreach ($outputFilterClassStrings as $filter) {
+            $outputFilters[$filter] = Config::initClass($container, $filter);
+        }
+
         return new ViteAssetsRegistry(
             $container->get(ViteServerInterface::class),
             $manifests,
@@ -67,6 +76,7 @@ final class ViteAssetsRegistryFactory
             Config::initClass($container, $directoryUrl),
             $config->string('vite/handle_prefix', ''),
             $config->bool('vite/es_modules', true),
+            $outputFilters
         );
     }
 }

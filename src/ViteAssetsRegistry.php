@@ -6,6 +6,7 @@ namespace Kaiseki\WordPress\Vite;
 
 use Inpsyde\Assets\Asset;
 use Inpsyde\Assets\AssetManager;
+use Inpsyde\Assets\OutputFilter\AssetOutputFilter;
 use Inpsyde\Assets\Script;
 use Inpsyde\Assets\Style;
 use Kaiseki\WordPress\Hook\HookCallbackProviderInterface;
@@ -42,6 +43,7 @@ class ViteAssetsRegistry implements HookCallbackProviderInterface
      * @param ?DirectoryUrlInterface                        $directoryUrl
      * @param string                                        $handlePrefix
      * @param bool                                          $esModules
+     * @param array<string, AssetOutputFilter>                                         $outputFilters
      */
     public function __construct(
         private readonly ViteServerInterface $viteServer,
@@ -54,6 +56,7 @@ class ViteAssetsRegistry implements HookCallbackProviderInterface
         ?DirectoryUrlInterface $directoryUrl = null,
         private readonly string $handlePrefix = '',
         private readonly bool $esModules = true,
+        private readonly array $outputFilters = []
     ) {
         $this->loader = new ViteManifestLoader();
 
@@ -80,6 +83,18 @@ class ViteAssetsRegistry implements HookCallbackProviderInterface
      */
     public function registerAssets(AssetManager $assetManager): void
     {
+        $handlers = $assetManager->handlers();
+
+        foreach ($handlers as $handler) {
+            /** @phpstan-ignore-next-line */
+            $handler->withOutputFilter(ModuleTypeScriptOutputFilter::class, new ModuleTypeScriptOutputFilter());
+
+            foreach ($this->outputFilters as $name => $filter) {
+                /** @phpstan-ignore-next-line */
+                $handler->withOutputFilter($name, $filter);
+            }
+        }
+
         $assets = array_map(
             /** @phpstan-ignore-next-line */
             fn (Asset $asset): Asset => $asset->disableAutodiscoverVersion(),
