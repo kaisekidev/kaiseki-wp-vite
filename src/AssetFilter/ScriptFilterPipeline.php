@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace Kaiseki\WordPress\Vite\AssetFilter;
 
 use Inpsyde\Assets\Script;
-use Kaiseki\WordPress\Vite\Interface\AssetFilterInterface;
-use Kaiseki\WordPress\Vite\Interface\ScriptFilterInterface;
 use Kaiseki\WordPress\Vite\ViteServerInterface;
 
 final class ScriptFilterPipeline implements ScriptFilterInterface

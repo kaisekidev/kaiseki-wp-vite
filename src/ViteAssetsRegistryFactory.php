@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace Kaiseki\WordPress\Vite;
 
 use Kaiseki\Config\Config;
+use Kaiseki\WordPress\Vite\AssetFilter\AssetFilterInterface;
+use Kaiseki\WordPress\Vite\AssetFilter\ScriptFilterInterface;
 use Kaiseki\WordPress\Vite\AssetFilter\ScriptFilterPipeline;
+use Kaiseki\WordPress\Vite\AssetFilter\StyleFilterInterface;
 use Kaiseki\WordPress\Vite\AssetFilter\StyleFilterPipeline;
 use Kaiseki\WordPress\Vite\DirectoryUrl\DirectoryUrlInterface;
-use Kaiseki\WordPress\Vite\Interface\AssetFilterInterface;
-use Kaiseki\WordPress\Vite\Interface\ScriptFilterInterface;
-use Kaiseki\WordPress\Vite\Interface\StyleFilterInterface;
 use Psr\Container\ContainerInterface;
 
 use function array_map;

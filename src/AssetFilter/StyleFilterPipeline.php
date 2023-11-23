@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace Kaiseki\WordPress\Vite\AssetFilter;
 
 use Inpsyde\Assets\Style;
-use Kaiseki\WordPress\Vite\Interface\AssetFilterInterface;
-use Kaiseki\WordPress\Vite\Interface\StyleFilterInterface;
 use Kaiseki\WordPress\Vite\ViteServerInterface;
 
 final class StyleFilterPipeline implements StyleFilterInterface
