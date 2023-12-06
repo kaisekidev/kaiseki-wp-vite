@@ -32,10 +32,9 @@
     "php": "^8.1",
     "ext-curl": "*",
     "inpsyde/assets": "^2.8",
-    "jjgrainger/posttypes": "^2.2",
-    "kaiseki/config": "^1.4.0",
+    "kaiseki/config": "dev-master",
     "kaiseki/wp-env": "dev-master",
-    "kaiseki/wp-hook": "dev-dev",
+    "kaiseki/wp-hook": "dev-master",
     "oscarotero/env": "^2.1",
     "psr/container": "^1.1",
     "thecodingmachine/safe": ">=1.2"

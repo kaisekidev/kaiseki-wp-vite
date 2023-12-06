@@ -96,7 +96,7 @@ class ViteAssetsRegistry implements HookCallbackProviderInterface
         }
 
         $assets = array_map(
-            /** @phpstan-ignore-next-line */
+            /** @ph-ignore-next-line */
             fn (Asset $asset): Asset => $asset->disableAutodiscoverVersion(),
             $this->loadAssets()
         );
