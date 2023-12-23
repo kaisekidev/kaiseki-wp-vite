@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace Kaiseki\WordPress\Vite;
 
+use Kaiseki\WordPress\Vite\Handle\HandleGenerator;
+use Kaiseki\WordPress\Vite\Handle\HandleGeneratorFactory;
+use Kaiseki\WordPress\Vite\Handle\HandleGeneratorInterface;
+
 final class ConfigProvider
 {
     /**
@@ -14,18 +18,21 @@ final class ConfigProvider
         return [
             'hook' => [
                 'provider' => [
-                    ViteAssetsRegistry::class,
+                    ViteAssetManager::class,
                     ViteClientScriptRenderer::class,
                 ],
             ],
             'dependencies' => [
                 'aliases' => [
+                    HandleGeneratorInterface::class => HandleGenerator::class,
                     ViteServerInterface::class => ViteServer::class,
                 ],
                 'factories' => [
-                    ViteAssetsRegistry::class => ViteAssetsRegistryFactory::class,
+                    HandleGenerator::class          => HandleGeneratorFactory::class,
+                    ViteAssetManager::class         => ViteAssetManagerFactory::class,
                     ViteClientScriptRenderer::class => ViteClientScriptRendererFactory::class,
-                    ViteServer::class => ViteServerFactory::class,
+                    ViteManifestLoader::class       => ViteManifestLoaderFactory::class,
+                    ViteServer::class               => ViteServerFactory::class,
                 ],
             ],
         ];

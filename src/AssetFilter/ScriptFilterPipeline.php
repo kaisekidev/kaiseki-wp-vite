@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace Kaiseki\WordPress\Vite\AssetFilter;
 
 use Inpsyde\Assets\Script;
-use Kaiseki\WordPress\Vite\ViteServerInterface;
 
+/**
+ * @phpstan-import-type Chunk from \Kaiseki\WordPress\Vite\ViteManifestLoader
+ */
 final class ScriptFilterPipeline implements ScriptFilterInterface
 {
     /** @var array<AssetFilterInterface|ScriptFilterInterface> */
@@ -17,14 +19,14 @@ final class ScriptFilterPipeline implements ScriptFilterInterface
         $this->filter = $filter;
     }
 
-    public function __invoke(Script $script, ViteServerInterface $viteClient): ?Script
+    public function __invoke(Script $script, string $chunkName, array $chunk): ?Script
     {
         foreach ($this->filter as $filter) {
             if ($script === null) {
                 return null;
             }
             /** @phpstan-var Script|null $script */
-            $script = ($filter)($script, $viteClient);
+            $script = ($filter)($script, $chunkName, $chunk);
         }
         return $script;
     }

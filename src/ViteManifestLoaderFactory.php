@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Kaiseki\WordPress\Vite;
 
-use Inpsyde\Assets\OutputFilter\AssetOutputFilter;
 use Kaiseki\Config\Config;
 use Kaiseki\WordPress\Vite\AssetFilter\AssetFilterInterface;
 use Kaiseki\WordPress\Vite\AssetFilter\ScriptFilterInterface;
@@ -12,10 +11,13 @@ use Kaiseki\WordPress\Vite\AssetFilter\ScriptFilterPipeline;
 use Kaiseki\WordPress\Vite\AssetFilter\StyleFilterInterface;
 use Kaiseki\WordPress\Vite\AssetFilter\StyleFilterPipeline;
 use Kaiseki\WordPress\Vite\DirectoryUrl\DirectoryUrlInterface;
+use Kaiseki\WordPress\Vite\Handle\HandleGeneratorInterface;
 use Psr\Container\ContainerInterface;
 
 use function array_map;
+use function class_exists;
 use function is_bool;
+use function is_string;
 
 /**
  * @phpstan-type ScriptFilterTypes ScriptFilterInterface|AssetFilterInterface
@@ -23,13 +25,11 @@ use function is_bool;
  * @phpstan-type StyleFilterTypes StyleFilterInterface|AssetFilterInterface
  * @phpstan-type StyleFilterPipelineType list<class-string<StyleFilterTypes>|StyleFilterTypes>
  */
-final class ViteAssetsRegistryFactory
+final class ViteManifestLoaderFactory
 {
-    public function __invoke(ContainerInterface $container): ViteAssetsRegistry
+    public function __invoke(ContainerInterface $container): ViteManifestLoader
     {
         $config = Config::get($container);
-        /** @var list<string> $manifests */
-        $manifests = $config->array('vite/manifests', []);
 
         /** @var ScriptFilterPipelineType $scriptFilter */
         $scriptFilter = $config->array('vite/script_filter', []);
@@ -38,8 +38,8 @@ final class ViteAssetsRegistryFactory
         /** @var array<string, bool|ScriptFilterInterface> $scripts */
         $scripts = array_map(
             fn (bool|array $value): bool|ScriptFilterInterface => is_bool($value)
-               ? $value
-               : new ScriptFilterPipeline(...Config::initClassMap($container, $value)),
+                ? $value
+                : new ScriptFilterPipeline(...Config::initClassMap($container, $value)),
             $scriptSettings,
         );
 
@@ -50,33 +50,45 @@ final class ViteAssetsRegistryFactory
         /** @var array<string, bool|StyleFilterInterface> $styles */
         $styles = array_map(
             fn (bool|array $value): bool|StyleFilterInterface => is_bool($value)
-               ? $value
-               : new StyleFilterPipeline(...Config::initClassMap($container, $value)),
+                ? $value
+                : new StyleFilterPipeline(...Config::initClassMap($container, $value)),
             $styleSettings,
         );
-        /** @var class-string<DirectoryUrlInterface>|DirectoryUrlInterface $directoryUrl */
-        $directoryUrl = $config->get('vite/directory_url', '', true);
 
-        /** @var list<class-string<AssetOutputFilter>> $outputFilterClassStrings */
-        $outputFilterClassStrings = $config->array('vite/output_filters', []);
-        /** @var array<string, AssetOutputFilter> $outputFilters */
-        $outputFilters = [];
-        foreach ($outputFilterClassStrings as $filter) {
-            $outputFilters[$filter] = Config::initClass($container, $filter);
-        }
-
-        return new ViteAssetsRegistry(
-            $container->get(ViteServerInterface::class),
-            $manifests,
+        return new ViteManifestLoader(
             $scriptFilter === [] ? null : new ScriptFilterPipeline(...Config::initClassMap($container, $scriptFilter)),
             $scripts,
             $styleFilter === [] ? null : new StyleFilterPipeline(...Config::initClassMap($container, $styleFilter)),
             $styles,
-            $config->bool('vite/autoload', false),
-            Config::initClass($container, $directoryUrl),
-            $config->string('vite/handle_prefix', ''),
-            $config->bool('vite/es_modules', true),
-            $outputFilters
+            $this->getDirectoryUrl($container),
+            $config->bool('vite/disable_autoload', false),
+            $container->get(HandleGeneratorInterface::class),
         );
+    }
+
+    private function getDirectoryUrl(ContainerInterface $container): string
+    {
+        $config = Config::get($container);
+
+        /** @var ViteServerInterface $server */
+        $server = $container->get(ViteServerInterface::class);
+
+        /** @var class-string<DirectoryUrlInterface>|DirectoryUrlInterface|string|null $directoryUrl */
+        $directoryUrl = $config->get('vite/directory_url', '', true);
+
+        if ($directoryUrl === null) {
+            return '';
+        }
+
+        if (is_string($directoryUrl) && class_exists($directoryUrl)) {
+            /** @var DirectoryUrlInterface $directoryUrl */
+            $directoryUrl = Config::initClass($container, $directoryUrl);
+        }
+
+        if ($directoryUrl instanceof DirectoryUrlInterface) {
+            return ($directoryUrl)($server);
+        }
+
+        return $directoryUrl;
     }
 }

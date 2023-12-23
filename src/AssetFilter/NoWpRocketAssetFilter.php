@@ -5,16 +5,21 @@ declare(strict_types=1);
 namespace Kaiseki\WordPress\Vite\AssetFilter;
 
 use Inpsyde\Assets\Asset;
-use Kaiseki\WordPress\Vite\ViteServerInterface;
 
+/**
+ * @phpstan-import-type Chunk from \Kaiseki\WordPress\Vite\ViteManifestLoader
+ */
 final class NoWpRocketAssetFilter implements AssetFilterInterface
 {
-    public function __invoke(?Asset $asset, ViteServerInterface $viteClient): ?Asset
+    /**
+     * @param Asset  $asset
+     * @param string $chunkName
+     * @param Chunk  $chunk
+     *
+     * @return Asset|null
+     */
+    public function __invoke(Asset $asset, string $chunkName, array $chunk): ?Asset
     {
-        if ($asset === null) {
-            return $asset;
-        }
-
         return $asset->withAttributes([
             'nowprocket' => 'true',
         ]);
