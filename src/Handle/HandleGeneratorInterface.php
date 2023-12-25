@@ -12,9 +12,8 @@ interface HandleGeneratorInterface
     /**
      * @param string $chunkName
      * @param Chunk  $chunk
-     * @param string $resource
      *
      * @return string
      */
-    public function generate(string $chunkName, array $chunk, string $resource): string;
+    public function generate(string $chunkName, array $chunk): string;
 }
