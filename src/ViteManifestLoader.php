@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace Kaiseki\WordPress\Vite;
 
 use Inpsyde\Assets\Asset;
-use Inpsyde\Assets\Exception\FileNotFoundException;
-use Inpsyde\Assets\Exception\InvalidResourceException;
 use Inpsyde\Assets\Loader\AbstractWebpackLoader;
 use Inpsyde\Assets\Script;
 use Inpsyde\Assets\Style;
@@ -22,7 +20,9 @@ use function in_array;
 use function is_array;
 use function is_string;
 use function pathinfo;
+use function str_replace;
 use function str_starts_with;
+use function strpos;
 
 use const PATHINFO_FILENAME;
 
@@ -80,6 +80,11 @@ class ViteManifestLoader extends AbstractWebpackLoader
     protected function parseData(array $data, string $resource): array
     {
         $directory = trailingslashit(dirname($resource));
+        $url = $this->convertPathToUrl($resource);
+        if ($url === null) {
+            return [];
+        }
+        $directoryUrl = trailingslashit(dirname($url));
         $assets = [];
         foreach ($data as $chunkName => $chunk) {
             // It can be possible, that the "handle"-key is a filepath.
@@ -104,7 +109,7 @@ class ViteManifestLoader extends AbstractWebpackLoader
                 ? $this->handleGenerator->generate($chunkName, $chunk, $resource)
                 : pathinfo($chunkName, PATHINFO_FILENAME);
             $sanitizedFile = $this->sanitizeFileName($chunk['file']);
-            $fileUrl = $this->directoryUrl . $sanitizedFile;
+            $fileUrl = $directoryUrl . $sanitizedFile;
             $filePath = $directory . $sanitizedFile;
             $asset = $this->buildAsset($handle, $fileUrl, $filePath);
 
@@ -217,5 +222,35 @@ class ViteManifestLoader extends AbstractWebpackLoader
         }
 
         return  null;
+    }
+
+    private function convertPathToUrl(string $absolutePath): ?string
+    {
+        if (!defined('WP_CONTENT_DIR')) {
+            return null;
+        }
+
+        // Get the WordPress content directory absolute path
+        $contentDir = WP_CONTENT_DIR;
+
+        // Get the WordPress content directory URL
+        $contentUrl = content_url();
+
+        // remove .vite/ from absolute path
+        // https://vitejs.dev/guide/migration.html#manifest-files-are-now-generated-in-vite-directory-by-default
+        $absolutePath = str_replace('.vite/', '', $absolutePath);
+
+        // Check if the absolute path contains the content directory path
+        if (strpos($absolutePath, $contentDir) !== false) {
+            // Replace the content directory path with the content URL
+            $url = str_replace($contentDir, $contentUrl, $absolutePath);
+
+            // Replace backslashes with forward slashes for Windows compatibility
+            $url = str_replace('\\', '/', $url);
+
+            return $url;
+        }
+
+        return null;
     }
 }
