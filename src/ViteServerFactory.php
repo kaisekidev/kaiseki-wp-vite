@@ -12,11 +12,11 @@ final class ViteServerFactory
 {
     public function __invoke(ContainerInterface $container): ViteServer
     {
-        $config = Config::get($container);
+        $config = Config::fromContainer($container);
         return new ViteServer(
             $container->get(EnvironmentInterface::class),
-            $config->string('vite_client/host', 'localhost'),
-            $config->int('vite_client/port', 5173),
+            $config->string('vite.client.host'),
+            $config->int('vite.client.port'),
         );
     }
 }

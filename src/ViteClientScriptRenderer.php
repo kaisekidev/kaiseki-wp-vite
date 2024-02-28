@@ -4,21 +4,21 @@ declare(strict_types=1);
 
 namespace Kaiseki\WordPress\Vite;
 
-use Kaiseki\WordPress\Hook\HookCallbackProviderInterface;
+use Kaiseki\WordPress\Hook\HookProviderInterface;
 
 use function function_exists;
 
-final class ViteClientScriptRenderer implements HookCallbackProviderInterface
+final class ViteClientScriptRenderer implements HookProviderInterface
 {
     public function __construct(
         private readonly ViteServerInterface $viteServer,
     ) {
     }
 
-    public function registerHookCallbacks(): void
+    public function addHooks(): void
     {
-        add_action('wp_head', [$this, 'renderViteClientScript']);
-        add_action('admin_head', [$this, 'renderViteClientScript']);
+        add_action('wp_head', [$this, 'renderViteClientScript'], 1);
+        add_action('admin_head', [$this, 'renderViteClientScript'], 1);
     }
 
     public function renderViteClientScript(): void

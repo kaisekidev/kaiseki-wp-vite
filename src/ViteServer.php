@@ -4,14 +4,12 @@ declare(strict_types=1);
 
 namespace Kaiseki\WordPress\Vite;
 
+use GuzzleHttp\Client;
+use GuzzleHttp\RequestOptions;
 use Kaiseki\WordPress\Environment\EnvironmentInterface;
 
-use function curl_close;
 use function Env\env;
 use function is_bool;
-
-use const CURLINFO_HTTP_CODE;
-use const CURLOPT_RETURNTRANSFER;
 
 final class ViteServer implements ViteServerInterface
 {
@@ -47,28 +45,26 @@ final class ViteServer implements ViteServerInterface
 
     public function isHot(): bool
     {
-        if (!$this->environment->isLocal() && !$this->environment->isDevelopment()) {
+        if (!$this->environment->isDevelopment() && !$this->environment->isLocal()) {
             return false;
         }
+
         if (is_bool($this->isViteClientActive)) {
             return $this->isViteClientActive;
         }
-        $url = trailingslashit(self::getServerUrl()) . self::VITE_CLIENT;
-        return $this->isViteClientActive = $this->checkUrlWithCurl($url);
-    }
 
-    private function checkUrlWithCurl(string $url): bool
-    {
-        $ch = \Safe\curl_init($url);
-        \Safe\curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        $client = new Client();
+
         try {
-            \Safe\curl_exec($ch);
-        } catch (\Throwable) {
-            return false;
+            return $this->isViteClientActive = $client
+                    ->get(
+                        trailingslashit(self::getServerUrl()) . self::VITE_CLIENT,
+                        [RequestOptions::HTTP_ERRORS => false]
+                    )
+                    ->getStatusCode() === 200;
+        } catch (\Throwable $e) {
         }
-        $httpCode = \Safe\curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        // @phpstan-ignore-next-line
-        curl_close($ch);
-        return $httpCode === 200;
+
+        return false;
     }
 }

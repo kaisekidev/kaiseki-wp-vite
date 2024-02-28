@@ -6,25 +6,27 @@ namespace Kaiseki\WordPress\Vite;
 
 use Inpsyde\Assets\Asset;
 use Inpsyde\Assets\AssetManager;
-use Inpsyde\Assets\OutputFilter\AssetOutputFilter;
-use Kaiseki\WordPress\Hook\HookCallbackProviderInterface;
-use Kaiseki\WordPress\Vite\OutputFilter\ModuleTypeScriptOutputFilter;
+use Kaiseki\WordPress\Hook\HookProviderInterface;
+use Kaiseki\WordPress\Vite\ManifestFileLoader\ManifestFileLoaderInterface;
 
 use function add_action;
+use function array_merge;
 
-class ViteAssetManager implements HookCallbackProviderInterface
+class ViteAssetManager implements HookProviderInterface
 {
     /**
-     * @param list<Asset>                      $assets
-     * @param array<string, AssetOutputFilter> $outputFilters
+     * @param list<ManifestFileLoaderInterface|string|null> $manifests
+     * @param ViteManifestLoader                            $loader
+     * @param ViteServerInterface                           $server
      */
     public function __construct(
-        private readonly array $assets,
-        private readonly array $outputFilters = []
+        private readonly array $manifests,
+        private readonly ViteManifestLoader $loader,
+        private readonly ViteServerInterface $server
     ) {
     }
 
-    public function registerHookCallbacks(): void
+    public function addHooks(): void
     {
         add_action(AssetManager::ACTION_SETUP, [$this, 'registerAssets']);
     }
@@ -36,18 +38,28 @@ class ViteAssetManager implements HookCallbackProviderInterface
      */
     public function registerAssets(AssetManager $assetManager): void
     {
-        $handlers = $assetManager->handlers();
+        $assetManager->register(...$this->loadAssets());
+    }
 
-        foreach ($handlers as $handler) {
-            /** @phpstan-ignore-next-line */
-            $handler->withOutputFilter(ModuleTypeScriptOutputFilter::class, new ModuleTypeScriptOutputFilter());
+    /**
+     * @return list<Asset>
+     */
+    private function loadAssets(): array
+    {
+        $assets = [];
 
-            foreach ($this->outputFilters as $name => $filter) {
-                /** @phpstan-ignore-next-line */
-                $handler->withOutputFilter($name, $filter);
+        foreach ($this->manifests as $manifest) {
+            if ($manifest instanceof ManifestFileLoaderInterface) {
+                $manifest = $manifest($this->server);
             }
+
+            if ($manifest === null) {
+                continue;
+            }
+
+            $assets = array_merge($assets, $this->loader->load($manifest));
         }
 
-        $assetManager->register(...$this->assets);
+        return $assets;
     }
 }

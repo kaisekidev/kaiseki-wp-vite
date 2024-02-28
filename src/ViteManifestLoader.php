@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Kaiseki\WordPress\Vite;
 
+use GuzzleHttp\Client;
+use GuzzleHttp\RequestOptions;
 use Inpsyde\Assets\Asset;
 use Inpsyde\Assets\Loader\AbstractWebpackLoader;
 use Inpsyde\Assets\Script;
@@ -15,6 +17,7 @@ use Kaiseki\WordPress\Vite\Handle\HandleGeneratorInterface;
 use Kaiseki\WordPress\Vite\OutputFilter\ModuleTypeScriptOutputFilter;
 
 use function array_keys;
+use function defined;
 use function dirname;
 use function in_array;
 use function is_array;
@@ -44,29 +47,28 @@ use const PATHINFO_FILENAME;
  */
 class ViteManifestLoader extends AbstractWebpackLoader
 {
+    private Client $client;
+
     /**
-     * @param ?ScriptFilterInterface                                         $scriptFilter
+     * @param AssetFilterInterface|ScriptFilterInterface|null                $scriptFilter
      * @param array<string, AssetFilterInterface|bool|ScriptFilterInterface> $scriptFilters
-     * @param ?StyleFilterInterface                                          $styleFilter
+     * @param AssetFilterInterface|StyleFilterInterface|null                 $styleFilter
      * @param array<string, AssetFilterInterface|bool|StyleFilterInterface>  $styleFilters
-     * @param string                                                         $directoryUrl
      * @param bool                                                           $disableAutoload
+     * @param ?ViteServerInterface                                           $server
      * @param ?HandleGeneratorInterface                                      $handleGenerator
      */
     public function __construct(
-        private readonly ?ScriptFilterInterface $scriptFilter = null,
+        private readonly ScriptFilterInterface|AssetFilterInterface|null $scriptFilter = null,
         private readonly array $scriptFilters = [],
-        private readonly ?StyleFilterInterface $styleFilter = null,
+        private readonly StyleFilterInterface|AssetFilterInterface|null $styleFilter = null,
         private readonly array $styleFilters = [],
-        string $directoryUrl = '',
         private readonly bool $disableAutoload = false,
+        private readonly ?ViteServerInterface $server = null,
         private readonly ?HandleGeneratorInterface $handleGenerator = null,
     ) {
-        if ($directoryUrl !== '') {
-            $this->withDirectoryUrl($directoryUrl);
-        }
-
         $this->autodiscoverVersion = false;
+        $this->client = new Client();
     }
 
     /**
@@ -79,13 +81,16 @@ class ViteManifestLoader extends AbstractWebpackLoader
      */
     protected function parseData(array $data, string $resource): array
     {
-        $directory = trailingslashit(dirname($resource));
-        $url = $this->convertPathToUrl($resource);
-        if ($url === null) {
+        $manifestUrl = $this->manifestPathToUrl($resource);
+
+        if ($manifestUrl === null) {
             return [];
         }
-        $directoryUrl = trailingslashit(dirname($url));
+
+        $assetsBasePath = trailingslashit(dirname($resource));
+        $assetsBaseUrl = trailingslashit(dirname($manifestUrl));
         $assets = [];
+
         foreach ($data as $chunkName => $chunk) {
             // It can be possible, that the "handle"-key is a filepath.
             $chunkName = pathinfo($chunkName, PATHINFO_FILENAME);
@@ -105,12 +110,14 @@ class ViteManifestLoader extends AbstractWebpackLoader
                 continue;
             }
 
-            $handle = $this->handleGenerator !== null
-                ? $this->handleGenerator->generate($chunkName, $chunk, $resource)
-                : pathinfo($chunkName, PATHINFO_FILENAME);
+            // Generate handle from chunk name or use the handle generator.
+            $handle = $this->handleGenerator?->generate($chunkName, $chunk, $resource)
+                ?? pathinfo($chunkName, PATHINFO_FILENAME);
             $sanitizedFile = $this->sanitizeFileName($chunk['file']);
-            $fileUrl = $directoryUrl . $sanitizedFile;
-            $filePath = $directory . $sanitizedFile;
+            // Try loading the asset from the vite dev server if it exists there.
+            $fileUrl = $this->getHotAssetUrl($sanitizedFile) ?? $assetsBaseUrl . $sanitizedFile;
+            $filePath = $assetsBasePath . $sanitizedFile;
+
             $asset = $this->buildAsset($handle, $fileUrl, $filePath);
 
             if ($asset === null) {
@@ -123,7 +130,7 @@ class ViteManifestLoader extends AbstractWebpackLoader
                 continue;
             }
 
-            $assets[] = $asset;
+            $assets[] = $filteredAsset;
         }
 
         return $assets;
@@ -182,9 +189,9 @@ class ViteManifestLoader extends AbstractWebpackLoader
      * @param string       $chunkName
      * @param Chunk        $chunk
      *
-     * @return Script|Style|null
+     * @return Asset|null
      */
-    private function filterAsset(Script|Style $asset, string $chunkName, array $chunk): Script|Style|null
+    private function filterAsset(Script|Style $asset, string $chunkName, array $chunk): Asset|null
     {
         $handle = $asset->handle();
         $assetFilters = $asset instanceof Script
@@ -224,7 +231,7 @@ class ViteManifestLoader extends AbstractWebpackLoader
         return  null;
     }
 
-    private function convertPathToUrl(string $absolutePath): ?string
+    private function manifestPathToUrl(string $absolutePath): ?string
     {
         if (!defined('WP_CONTENT_DIR')) {
             return null;
@@ -249,6 +256,28 @@ class ViteManifestLoader extends AbstractWebpackLoader
             $url = str_replace('\\', '/', $url);
 
             return $url;
+        }
+
+        return null;
+    }
+
+    private function getHotAssetUrl(string $sanitizedFile): ?string
+    {
+        if ($this->server?->isHot() !== true) {
+            return null;
+        }
+
+        $url = trailingslashit($this->server->getServerUrl()) . $sanitizedFile;
+
+        try {
+             $statusCode = $this->client
+                    ->get(
+                        $url,
+                        [RequestOptions::HTTP_ERRORS => false]
+                    )
+                    ->getStatusCode();
+             return $statusCode === 200 ? $url : null;
+        } catch (\Throwable $e) {
         }
 
         return null;

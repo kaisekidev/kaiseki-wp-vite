@@ -30,18 +30,17 @@
   },
   "require": {
     "php": "^8.1",
-    "ext-curl": "*",
+    "guzzlehttp/guzzle": "^7.4.5",
     "inpsyde/assets": "^2.8",
     "kaiseki/config": "dev-master",
     "kaiseki/wp-env": "dev-master",
     "kaiseki/wp-hook": "dev-master",
     "oscarotero/env": "^2.1",
-    "psr/container": "^1.1",
-    "thecodingmachine/safe": ">=1.2"
+    "psr/container": "^1.1 || ^2.0",
+    "thecodingmachine/safe": "^1.3 || ^2.0"
   },
   "require-dev": {
     "bnf/phpstan-psr-container": "^1.0",
-    "friendsofphp/php-cs-fixer": "^3.21",
     "kaiseki/php-coding-standard": "dev-master",
     "maglnet/composer-require-checker": "^3.5",
     "php-stubs/wordpress-stubs": "^6.2",
@@ -53,14 +52,12 @@
     "roave/security-advisories": "dev-latest",
     "roots/wordpress-core-installer": "*",
     "roots/wordpress-no-content": "@stable",
-    "squizlabs/php_codesniffer": "^3.7.1",
     "szepeviktor/phpstan-wordpress": "^1.3",
-    "thecodingmachine/phpstan-safe-rule": "^1.1"
+    "thecodingmachine/phpstan-safe-rule": "^1.2"
   },
   "config": {
     "sort-packages": true,
     "allow-plugins": {
-      "dealerdirect/phpcodesniffer-composer-installer": true,
       "phpstan/extension-installer": true,
       "roots/wordpress-core-installer": true
     }
@@ -98,17 +95,10 @@
       "@cs-check",
       "@phpstan"
     ],
-    "fix": [
-      "@cs-fix",
-      "@cs-fixer"
-    ],
-    "check-deps": "vendor/bin/composer-require-checker --config-file=require-checker.config.json",
-    "cs-check": "vendor/bin/phpcs -s",
-    "cs-fix": "vendor/bin/phpcbf",
-    "cs-fixer": "vendor/bin/php-cs-fixer fix --config=.php-cs-fixer.php",
-    "phpstan": "vendor/bin/phpstan analyse --memory-limit 1G",
-    "phpstan-pro": "vendor/bin/phpstan analyse --pro --memory-limit 1G",
-    "phpunit": "vendor/bin/phpunit",
-    "deploy": "vendor/bin/dep deploy"
+    "check-deps": "composer-require-checker --config-file=require-checker.config.json",
+    "cs-check": "php-cs-fixer fix --dry-run",
+    "cs-fix": "php-cs-fixer fix --allow-risky=yes",
+    "phpstan": "phpstan analyse --memory-limit 1G",
+    "phpunit": "phpunit"
   }
 }
