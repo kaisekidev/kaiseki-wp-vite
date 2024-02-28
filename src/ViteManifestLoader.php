@@ -15,8 +15,10 @@ use Kaiseki\WordPress\Vite\AssetFilter\ScriptFilterInterface;
 use Kaiseki\WordPress\Vite\AssetFilter\StyleFilterInterface;
 use Kaiseki\WordPress\Vite\Handle\HandleGeneratorInterface;
 use Kaiseki\WordPress\Vite\OutputFilter\ModuleTypeScriptOutputFilter;
+use Throwable;
 
 use function array_keys;
+use function content_url;
 use function defined;
 use function dirname;
 use function in_array;
@@ -26,6 +28,7 @@ use function pathinfo;
 use function str_replace;
 use function str_starts_with;
 use function strpos;
+use function trailingslashit;
 
 use const PATHINFO_FILENAME;
 
@@ -228,7 +231,7 @@ class ViteManifestLoader extends AbstractWebpackLoader
             return $asset;
         }
 
-        return  null;
+        return null;
     }
 
     private function manifestPathToUrl(string $absolutePath): ?string
@@ -270,14 +273,15 @@ class ViteManifestLoader extends AbstractWebpackLoader
         $url = trailingslashit($this->server->getServerUrl()) . $sanitizedFile;
 
         try {
-             $statusCode = $this->client
-                    ->get(
-                        $url,
-                        [RequestOptions::HTTP_ERRORS => false]
-                    )
-                    ->getStatusCode();
-             return $statusCode === 200 ? $url : null;
-        } catch (\Throwable $e) {
+            $statusCode = $this->client
+                   ->get(
+                       $url,
+                       [RequestOptions::HTTP_ERRORS => false]
+                   )
+                   ->getStatusCode();
+
+            return $statusCode === 200 ? $url : null;
+        } catch (Throwable $e) {
         }
 
         return null;

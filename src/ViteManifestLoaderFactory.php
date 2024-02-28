@@ -58,7 +58,7 @@ final class ViteManifestLoaderFactory
         ContainerInterface $container
     ): array {
         return array_map(
-            fn (bool|array $value): bool|AssetFilterInterface => is_bool($value)
+            fn(bool|array $value): bool|AssetFilterInterface => is_bool($value)
                 ? $value
                 : $this->initAssetFilterPipeline($value, $container),
             $filter,

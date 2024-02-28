@@ -45,12 +45,12 @@ final class ConfigProvider
                     ViteServerInterface::class => ViteServer::class,
                 ],
                 'factories' => [
-                    HandleGenerator::class          => HandleGeneratorFactory::class,
-                    OutputFilterRegistry::class          => OutputFilterRegistryFactory::class,
-                    ViteAssetManager::class         => ViteAssetManagerFactory::class,
+                    HandleGenerator::class => HandleGeneratorFactory::class,
+                    OutputFilterRegistry::class => OutputFilterRegistryFactory::class,
+                    ViteAssetManager::class => ViteAssetManagerFactory::class,
                     ViteClientScriptRenderer::class => ViteClientScriptRendererFactory::class,
-                    ViteManifestLoader::class       => ViteManifestLoaderFactory::class,
-                    ViteServer::class               => ViteServerFactory::class,
+                    ViteManifestLoader::class => ViteManifestLoaderFactory::class,
+                    ViteServer::class => ViteServerFactory::class,
                 ],
             ],
         ];

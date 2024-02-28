@@ -7,9 +7,11 @@ namespace Kaiseki\WordPress\Vite;
 use GuzzleHttp\Client;
 use GuzzleHttp\RequestOptions;
 use Kaiseki\WordPress\Environment\EnvironmentInterface;
+use Throwable;
 
 use function Env\env;
 use function is_bool;
+use function trailingslashit;
 
 final class ViteServer implements ViteServerInterface
 {
@@ -62,7 +64,7 @@ final class ViteServer implements ViteServerInterface
                         [RequestOptions::HTTP_ERRORS => false]
                     )
                     ->getStatusCode() === 200;
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
         }
 
         return false;

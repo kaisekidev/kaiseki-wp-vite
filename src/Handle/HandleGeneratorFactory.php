@@ -12,6 +12,7 @@ final class HandleGeneratorFactory
     public function __invoke(ContainerInterface $container): HandleGenerator
     {
         $config = Config::fromContainer($container);
+
         return new HandleGenerator($config->string('vite.handle_prefix', ''));
     }
 }

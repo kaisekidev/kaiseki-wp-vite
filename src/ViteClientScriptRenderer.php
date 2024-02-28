@@ -6,7 +6,11 @@ namespace Kaiseki\WordPress\Vite;
 
 use Kaiseki\WordPress\Hook\HookProviderInterface;
 
+use function add_action;
 use function function_exists;
+use function get_current_screen;
+use function is_admin;
+use function trailingslashit;
 
 final class ViteClientScriptRenderer implements HookProviderInterface
 {

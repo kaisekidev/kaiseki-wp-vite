@@ -13,6 +13,7 @@ final class ViteServerFactory
     public function __invoke(ContainerInterface $container): ViteServer
     {
         $config = Config::fromContainer($container);
+
         return new ViteServer(
             $container->get(EnvironmentInterface::class),
             $config->string('vite.client.host'),

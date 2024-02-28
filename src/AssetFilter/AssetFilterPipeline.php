@@ -35,6 +35,7 @@ final class AssetFilterPipeline implements AssetFilterInterface
             /** @phpstan-var Asset|null $asset */
             $asset = ($filter)($asset, $chunkName, $chunk);
         }
+
         return $asset;
     }
 }
