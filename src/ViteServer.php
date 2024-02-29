@@ -9,7 +9,6 @@ use GuzzleHttp\RequestOptions;
 use Kaiseki\WordPress\Environment\EnvironmentInterface;
 use Throwable;
 
-use function Env\env;
 use function is_bool;
 use function trailingslashit;
 
@@ -40,8 +39,8 @@ final class ViteServer implements ViteServerInterface
     {
         return \Safe\sprintf(
             'http://%s:%s/',
-            env('VITE_HOST') !== null ? env('VITE_HOST') : $this->host,
-            env('VITE_PORT') !== null ? env('VITE_PORT') : $this->port,
+            $this->host,
+            $this->port,
         );
     }
 
