@@ -38,7 +38,13 @@ class ViteAssetManager implements HookProviderInterface
      */
     public function registerAssets(AssetManager $assetManager): void
     {
-        $assetManager->register(...$this->loadAssets());
+        $assets = $this->loadAssets();
+
+        if ($assets === []) {
+            return;
+        }
+
+        $assetManager->register(...$assets);
     }
 
     /**
