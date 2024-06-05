@@ -5,18 +5,15 @@ declare(strict_types=1);
 namespace Kaiseki\WordPress\Vite\AssetFilter;
 
 use Inpsyde\Assets\Style;
+use Kaiseki\WordPress\Vite\ChunkInterface;
 
-/**
- * @phpstan-import-type Chunk from \Kaiseki\WordPress\Vite\ViteManifestLoader
- */
 interface StyleFilterInterface
 {
     /**
-     * @param Style  $style
-     * @param string $chunkName
-     * @param Chunk  $chunk
+     * @param Style          $style*
+     * @param ChunkInterface $chunk
      *
      * @return Style|null
      */
-    public function __invoke(Style $style, string $chunkName, array $chunk): ?Style;
+    public function __invoke(Style $style, ChunkInterface $chunk): ?Style;
 }
