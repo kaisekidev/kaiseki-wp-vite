@@ -18,38 +18,19 @@ use Kaiseki\WordPress\Vite\OutputFilter\ModuleTypeScriptOutputFilter;
 use Throwable;
 
 use function array_keys;
-use function content_url;
-use function defined;
-use function dirname;
 use function in_array;
 use function is_array;
-use function is_string;
 use function pathinfo;
-use function str_replace;
-use function str_starts_with;
-use function strpos;
 use function trailingslashit;
 
 use const PATHINFO_FILENAME;
 
 /**
- * Implementation of Vite manifest.json parsing into Assets.
- *
- * @link https://vitejs.dev/guide/backend-integration.html
- *
- * @phpstan-type Chunk array{
- *     src?: string,
- *     file: string,
- *     css?: array<string>,
- *     assets?: array<string>,
- *     isEntry?: bool,
- *     isDynamicEntry?: bool,
- *     imports?: array<string>,
- *     dynamicImports?: array<string>,
- * }
+ * @phpstan-import-type ChunkData from ChunkInterface
  */
 class ViteManifestLoader extends AbstractWebpackLoader
 {
+    private ChunkBuilder $chunkBuilder;
     private Client $client;
 
     /**
@@ -71,6 +52,7 @@ class ViteManifestLoader extends AbstractWebpackLoader
         private readonly ?HandleGeneratorInterface $handleGenerator = null,
     ) {
         $this->autodiscoverVersion = false;
+        $this->chunkBuilder = new ChunkBuilder();
         $this->client = new Client();
     }
 
@@ -84,59 +66,94 @@ class ViteManifestLoader extends AbstractWebpackLoader
      */
     protected function parseData(array $data, string $resource): array
     {
-        $manifestUrl = $this->manifestPathToUrl($resource);
+        // @phpstan-ignore-next-line
+        $manifest = new ViteManifestFile($resource, $data);
 
-        if ($manifestUrl === null) {
+        if ($manifest->isValid() === false) {
             return [];
         }
 
-        $assetsBasePath = trailingslashit(dirname($resource));
-        $assetsBaseUrl = trailingslashit(dirname($manifestUrl));
         $assets = [];
 
-        foreach ($data as $chunkName => $chunk) {
-            // It can be possible, that the "handle"-key is a filepath.
-            $chunkName = pathinfo($chunkName, PATHINFO_FILENAME);
-
-            if (str_starts_with($chunkName, '_')) {
+        foreach ($manifest->data as $chunkName => $chunk) {
+            if (!is_array($chunk)) {
                 continue;
             }
 
+            $chunk = $this->chunkBuilder->build($chunkName, $chunk);
             if (
-                !is_array($chunk)
-                || !isset($chunk['isEntry'])
-                || $chunk['isEntry'] !== true
-                || !isset($chunk['file'])
-                || !is_string($chunk['file'])
-                || $chunk['file'] === ''
+                $chunk->isEntry() !== true
+                || $chunk->getFile() === ''
             ) {
                 continue;
             }
 
-            // Generate handle from chunk name or use the handle generator.
-            $handle = $this->handleGenerator?->generate($chunkName, $chunk, $resource)
-                ?? pathinfo($chunkName, PATHINFO_FILENAME);
-            $sanitizedFile = $this->sanitizeFileName($chunk['file']);
-            // Try loading the asset from the vite dev server if it exists there.
-            $fileUrl = $this->getHotAssetUrl($sanitizedFile) ?? $assetsBaseUrl . $sanitizedFile;
-            $filePath = $assetsBasePath . $sanitizedFile;
-
-            $asset = $this->buildAsset($handle, $fileUrl, $filePath);
+            $asset = $this->assetFromChunk($chunk, $manifest);
 
             if ($asset === null) {
                 continue;
             }
 
-            $filteredAsset = $this->filterAsset($asset, $chunkName, $chunk);
-
-            if ($filteredAsset === null) {
-                continue;
-            }
-
-            $assets[] = $filteredAsset;
+            $assets = [
+                ...$assets,
+                $asset,
+                ...$this->filesToAssets($chunk->getCss(), $manifest),
+            ];
         }
 
         return $assets;
+    }
+
+    /**
+     * @param list<string>     $files
+     * @param ViteManifestFile $manifest
+     *
+     * @return list<Asset>
+     */
+    private function filesToAssets(
+        array $files,
+        ViteManifestFile $manifest
+    ): array {
+        $assets = [];
+
+        foreach ($files as $file) {
+            $chunk = $manifest->getChunkByFileName($file);
+
+            if ($chunk === null) {
+                continue;
+            }
+
+            $asset = $this->assetFromChunk($chunk, $manifest);
+
+            if ($asset === null) {
+                continue;
+            }
+
+            $assets[] = $asset;
+        }
+
+        return $assets;
+    }
+
+    private function assetFromChunk(
+        ChunkInterface $chunk,
+        ViteManifestFile $manifest
+    ): Asset|null {
+        // Generate handle from chunk name or use the handle generator.
+        $handle = $this->handleGenerator?->generate($chunk, $manifest->manifestPath)
+            ?? $chunk->getSourceFileName();
+        $sanitizedFile = $this->sanitizeFileName($chunk->getFile());
+        // Try loading the asset from the vite dev server if it exists there.
+        $fileUrl = $this->getHotAssetUrl($sanitizedFile) ?? $manifest->getAssetBaseUrl() . $sanitizedFile;
+        $filePath = $manifest->getAssetBasePath() . $sanitizedFile;
+
+        $asset = $this->buildAsset($handle, $fileUrl, $filePath);
+
+        if ($asset === null) {
+            return null;
+        }
+
+        return $this->filterAsset($asset, $chunk);
     }
 
     /**
@@ -188,13 +205,12 @@ class ViteManifestLoader extends AbstractWebpackLoader
     /**
      * Filter asset.
      *
-     * @param Script|Style $asset
-     * @param string       $chunkName
-     * @param Chunk        $chunk
+     * @param Script|Style   $asset
+     * @param ChunkInterface $chunk
      *
      * @return Asset|null
      */
-    private function filterAsset(Script|Style $asset, string $chunkName, array $chunk): Asset|null
+    private function filterAsset(Script|Style $asset, ChunkInterface $chunk): Asset|null
     {
         $handle = $asset->handle();
         $assetFilters = $asset instanceof Script
@@ -202,25 +218,29 @@ class ViteManifestLoader extends AbstractWebpackLoader
             : $this->styleFilters;
 
         if ($this->scriptFilter !== null && $asset instanceof Script) {
-            $asset = ($this->scriptFilter)($asset, $chunkName, $chunk);
+            $asset = ($this->scriptFilter)($asset, $chunk);
         }
 
         if ($this->styleFilter !== null && $asset instanceof Style) {
-            $asset = ($this->styleFilter)($asset, $chunkName, $chunk);
+            $asset = ($this->styleFilter)($asset, $chunk);
         }
 
         if ($asset === null) {
             return null;
         }
 
-        $filter = $assetFilters[$handle] ?? $assetFilters[$chunkName] ?? null;
+        $filter =
+            $assetFilters[$handle]
+            ?? $assetFilters[$chunk->getSourceFileName()]
+            ?? $assetFilters[$chunk->getChunkKey()]
+            ?? null;
 
         if (
             $filter instanceof ScriptFilterInterface
             || $filter instanceof StyleFilterInterface
             || $filter instanceof AssetFilterInterface
         ) {
-            return $filter($asset, $chunkName, $chunk);
+            return $filter($asset, $chunk);
         }
 
         if ($this->disableAutoload === false && $filter !== false) {
@@ -229,36 +249,6 @@ class ViteManifestLoader extends AbstractWebpackLoader
 
         if ($this->disableAutoload === true && $filter === true) {
             return $asset;
-        }
-
-        return null;
-    }
-
-    private function manifestPathToUrl(string $absolutePath): ?string
-    {
-        if (!defined('WP_CONTENT_DIR')) {
-            return null;
-        }
-
-        // Get the WordPress content directory absolute path
-        $contentDir = WP_CONTENT_DIR;
-
-        // Get the WordPress content directory URL
-        $contentUrl = content_url();
-
-        // remove .vite/ from absolute path
-        // https://vitejs.dev/guide/migration.html#manifest-files-are-now-generated-in-vite-directory-by-default
-        $absolutePath = str_replace('.vite/', '', $absolutePath);
-
-        // Check if the absolute path contains the content directory path
-        if (strpos($absolutePath, $contentDir) !== false) {
-            // Replace the content directory path with the content URL
-            $url = str_replace($contentDir, $contentUrl, $absolutePath);
-
-            // Replace backslashes with forward slashes for Windows compatibility
-            $url = str_replace('\\', '/', $url);
-
-            return $url;
         }
 
         return null;
