@@ -12,6 +12,7 @@ namespace Kaiseki\WordPress\Vite;
  * @phpstan-type ChunkData array{
  *     src?: string,
  *     file: string,
+ *     name?: string,
  *     css?: array<string>,
  *     assets?: array<string>,
  *     isEntry?: bool,

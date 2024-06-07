@@ -97,7 +97,7 @@ class ViteManifestLoader extends AbstractWebpackLoader
             $assets = [
                 ...$assets,
                 $asset,
-                ...$this->filesToAssets($chunk->getCss(), $manifest),
+                ...$this->cssFilesToAssets($chunk->getCss(), $chunk, $manifest),
             ];
         }
 
@@ -110,20 +110,26 @@ class ViteManifestLoader extends AbstractWebpackLoader
      *
      * @return list<Asset>
      */
-    private function filesToAssets(
+    private function cssFilesToAssets(
         array $files,
+        Chunk $chunk,
         ViteManifestFile $manifest
     ): array {
         $assets = [];
 
         foreach ($files as $file) {
-            $chunk = $manifest->getChunkByFileName($file);
+            $fileChunk = $manifest->getChunkByFileName($file);
 
-            if ($chunk === null) {
-                continue;
+            if ($fileChunk === null) {
+                $src = str_replace(
+                    pathinfo($chunk->getSource(), PATHINFO_EXTENSION),
+                    'css',
+                    $chunk->getSource()
+                );
+                $fileChunk = $this->chunkBuilder->build($src, ['file' => $file, 'src' => $src]);
             }
 
-            $asset = $this->assetFromChunk($chunk, $manifest);
+            $asset = $this->assetFromChunk($fileChunk, $manifest);
 
             if ($asset === null) {
                 continue;
