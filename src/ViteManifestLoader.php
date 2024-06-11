@@ -38,7 +38,7 @@ class ViteManifestLoader extends AbstractWebpackLoader
      * @param array<string, AssetFilterInterface|bool|ScriptFilterInterface> $scriptFilters
      * @param AssetFilterInterface|StyleFilterInterface|null                 $styleFilter
      * @param array<string, AssetFilterInterface|bool|StyleFilterInterface>  $styleFilters
-     * @param bool                                                           $disableAutoload
+     * @param bool                                                           $autoload
      * @param ?ViteServerInterface                                           $server
      * @param ?HandleGeneratorInterface                                      $handleGenerator
      */
@@ -47,7 +47,7 @@ class ViteManifestLoader extends AbstractWebpackLoader
         private readonly array $scriptFilters = [],
         private readonly StyleFilterInterface|AssetFilterInterface|null $styleFilter = null,
         private readonly array $styleFilters = [],
-        private readonly bool $disableAutoload = false,
+        private readonly bool $autoload = false,
         private readonly ?ViteServerInterface $server = null,
         private readonly ?HandleGeneratorInterface $handleGenerator = null,
     ) {
@@ -249,11 +249,11 @@ class ViteManifestLoader extends AbstractWebpackLoader
             return $filter($asset, $chunk);
         }
 
-        if ($this->disableAutoload === false && $filter !== false) {
+        if ($this->autoload === true && $filter !== false) {
             return $asset;
         }
 
-        if ($this->disableAutoload === true && $filter === true) {
+        if ($this->autoload === false && $filter === true) {
             return $asset;
         }
 

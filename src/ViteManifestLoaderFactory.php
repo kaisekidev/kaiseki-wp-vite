@@ -41,7 +41,7 @@ final class ViteManifestLoaderFactory
             $this->initAssetFilterPipelines($scriptSettings, $container),
             $this->initAssetFilterPipeline($styleFilter, $container),
             $this->initAssetFilterPipelines($styleSettings, $container),
-            $config->bool('vite.disable_autoload', false),
+            $config->bool('vite.autoload', false),
             $container->get(ViteServerInterface::class),
             $container->get(HandleGeneratorInterface::class),
         );
