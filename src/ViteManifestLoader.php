@@ -21,9 +21,10 @@ use function array_keys;
 use function in_array;
 use function is_array;
 use function pathinfo;
+use function str_replace;
 use function trailingslashit;
 
-use const PATHINFO_FILENAME;
+use const PATHINFO_EXTENSION;
 
 /**
  * @phpstan-import-type ChunkData from ChunkInterface
@@ -106,13 +107,14 @@ class ViteManifestLoader extends AbstractWebpackLoader
 
     /**
      * @param list<string>     $files
+     * @param ChunkInterface   $chunk
      * @param ViteManifestFile $manifest
      *
      * @return list<Asset>
      */
     private function cssFilesToAssets(
         array $files,
-        Chunk $chunk,
+        ChunkInterface $chunk,
         ViteManifestFile $manifest
     ): array {
         $assets = [];

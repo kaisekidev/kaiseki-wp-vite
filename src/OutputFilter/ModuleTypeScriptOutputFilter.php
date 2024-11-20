@@ -8,6 +8,9 @@ use Inpsyde\Assets\Asset;
 use Inpsyde\Assets\OutputFilter\AssetOutputFilter;
 use Inpsyde\Assets\Script;
 
+use function preg_match;
+use function preg_replace;
+
 class ModuleTypeScriptOutputFilter implements AssetOutputFilter
 {
     public function __invoke(string $html, Asset $asset): string
@@ -15,10 +18,10 @@ class ModuleTypeScriptOutputFilter implements AssetOutputFilter
         if (!$asset instanceof Script) {
             return $html;
         }
-        if ((bool)\Safe\preg_match('/type=["\'][^"\']*["\']/', $html)) {
-            return \Safe\preg_replace('/type=["\'][^"\']*["\']/', 'type="module"', $html);
+        if ((bool)preg_match('/type=["\'][^"\']*["\']/', $html)) {
+            return preg_replace('/type=["\'][^"\']*["\']/', 'type="module"', $html) ?? $html;
         }
 
-        return \Safe\preg_replace('/<script/', '<script type="module"', $html);
+        return preg_replace('/<script/', '<script type="module"', $html) ?? $html;
     }
 }

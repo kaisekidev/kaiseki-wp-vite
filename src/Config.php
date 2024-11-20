@@ -10,6 +10,9 @@ use Kaiseki\WordPress\Vite\AssetFilter\StyleFilterInterface;
 use Kaiseki\WordPress\Vite\ManifestFileLoader\ManifestFileLoader;
 use Kaiseki\WordPress\Vite\ManifestFileLoader\ManifestFileLoaderInterface;
 
+use function array_filter;
+use function is_array;
+
 /**
  * @phpstan-type FilterType AssetFilterInterface|ScriptFilterInterface|StyleFilterInterface
  * @phpstan-type ScriptFilterType AssetFilterInterface|ScriptFilterInterface
@@ -17,29 +20,17 @@ use Kaiseki\WordPress\Vite\ManifestFileLoader\ManifestFileLoaderInterface;
  */
 class Config
 {
-    /**
-     * @var ManifestFileLoaderInterface[]
-     */
+    /** @var ManifestFileLoaderInterface[] */
     private array $manifests = [];
-    /**
-     * @var array<class-string<ScriptFilterType>|ScriptFilterType>
-     */
+    /** @var array<class-string<ScriptFilterType>|ScriptFilterType> */
     private array $scriptFilter = [];
-    /**
-     * @var array<class-string<StyleFilterType>|StyleFilterType>
-     */
+    /** @var array<class-string<StyleFilterType>|StyleFilterType> */
     private array $styleFilter = [];
-    /**
-     * @var array<string, bool|array<class-string<ScriptFilterType>|ScriptFilterType>>
-     */
+    /** @var array<string, array<class-string<ScriptFilterType>|ScriptFilterType>|bool> */
     private array $scripts = [];
-    /**
-     * @var array<string, bool|array<class-string<StyleFilterType>|StyleFilterType>>
-     */
+    /** @var array<string, array<class-string<StyleFilterType>|StyleFilterType>|bool> */
     private array $styles = [];
-    /**
-     * @var array{host?: string, port?: int}|null
-     */
+    /** @var array{host?: string, port?: int}|null */
     private ?array $viteServer = null;
     private ?string $handlePrefix = null;
     private ?bool $autoload = null;
@@ -56,18 +47,19 @@ class Config
      *
      * @return $this
      */
-    public function addScriptsFilter(string|AssetFilterInterface|StyleFilterInterface ...$filter): self
+    public function addScriptsFilter(string|AssetFilterInterface|ScriptFilterInterface ...$filter): self
     {
+        // @phpstan-ignore-next-line
         $this->scriptFilter[] = [
             ...$this->scriptFilter,
-            ...$filter
+            ...$filter,
         ];
 
         return $this;
     }
 
     /**
-     * @param string                      $name
+     * @param string                                          $name
      * @param class-string<ScriptFilterType>|ScriptFilterType ...$filter
      *
      * @return $this
@@ -80,7 +72,7 @@ class Config
 
         $this->scripts[$name] = [
             ...$this->scripts[$name],
-            ...$filter
+            ...$filter,
         ];
 
         return $this;
@@ -91,18 +83,19 @@ class Config
      *
      * @return $this
      */
-    public function addStylesFilter(string|AssetFilterInterface|ScriptFilterInterface ...$filter): self
+    public function addStylesFilter(string|AssetFilterInterface|StyleFilterInterface ...$filter): self
     {
+        // @phpstan-ignore-next-line
         $this->styleFilter[] = [
             ...$this->styleFilter,
-            ...$filter
+            ...$filter,
         ];
 
         return $this;
     }
 
     /**
-     * @param string                      $name
+     * @param string                                        $name
      * @param class-string<StyleFilterType>|StyleFilterType ...$filter
      *
      * @return $this
@@ -115,7 +108,7 @@ class Config
 
         $this->styles[$name] = [
             ...$this->styles[$name],
-            ...$filter
+            ...$filter,
         ];
 
         return $this;

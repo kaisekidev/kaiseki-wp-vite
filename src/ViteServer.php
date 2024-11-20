@@ -10,6 +10,7 @@ use Kaiseki\WordPress\Environment\EnvironmentInterface;
 use Throwable;
 
 use function is_bool;
+use function sprintf;
 use function trailingslashit;
 
 final class ViteServer implements ViteServerInterface
@@ -37,7 +38,7 @@ final class ViteServer implements ViteServerInterface
 
     public function getServerUrl(): string
     {
-        return \Safe\sprintf(
+        return sprintf(
             'http://%s:%s/',
             $this->host,
             $this->port,

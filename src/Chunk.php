@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace Kaiseki\WordPress\Vite;
 
+use function pathinfo;
+
+use const PATHINFO_FILENAME;
+
 /**
  * @phpstan-import-type ChunkData from ChunkInterface
  */

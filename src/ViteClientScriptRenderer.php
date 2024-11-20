@@ -10,6 +10,7 @@ use function add_action;
 use function function_exists;
 use function get_current_screen;
 use function is_admin;
+use function sprintf;
 use function trailingslashit;
 
 final class ViteClientScriptRenderer implements HookProviderInterface
@@ -23,6 +24,7 @@ final class ViteClientScriptRenderer implements HookProviderInterface
     {
         add_action('wp_head', [$this, 'renderViteClientScript'], 1);
         add_action('admin_head', [$this, 'renderViteClientScript'], 1);
+        add_action('admin_head', [$this, 'renderViteClientScript'], 1);
     }
 
     public function renderViteClientScript(): void
@@ -31,8 +33,15 @@ final class ViteClientScriptRenderer implements HookProviderInterface
             return;
         }
 
-        echo \Safe\sprintf(
-            '<script type="module" src="%s@vite/client"></script>',
+        echo sprintf(
+            '<script type="module">
+                import RefreshRuntime from "%1$s@react-refresh"
+                RefreshRuntime.injectIntoGlobalHook(window)
+                window.$RefreshReg$ = () => {}
+                window.$RefreshSig$ = () => (type) => type
+                window.__vite_plugin_react_preamble_installed__ = true
+            </script>
+            <script type="module" src="%1$s@vite/client"></script>',
             trailingslashit($this->viteServer->getServerUrl())
         );
     }
