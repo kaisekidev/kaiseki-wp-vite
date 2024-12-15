@@ -20,11 +20,13 @@ use Throwable;
 use function array_keys;
 use function in_array;
 use function is_array;
+use function is_string;
 use function pathinfo;
-use function str_replace;
+use function preg_replace;
+use function str_ends_with;
 use function trailingslashit;
 
-use const PATHINFO_EXTENSION;
+use const PATHINFO_FILENAME;
 
 /**
  * @phpstan-import-type ChunkData from ChunkInterface
@@ -95,10 +97,25 @@ class ViteManifestLoader extends AbstractWebpackLoader
                 continue;
             }
 
+            $cssAssets = $chunk->getCss() !== []
+                ? $this->getCssAssets($asset, $chunk, $manifest)
+                : [];
+
+            foreach ($chunk->getImports() as $import) {
+                if (!isset($manifest->data[$import])) {
+                    continue;
+                }
+                $importChunk = $this->chunkBuilder->build($import, $manifest->data[$import]);
+                $cssAssets = [
+                    ...$cssAssets,
+                    ...$this->getCssAssets($asset, $importChunk, $manifest),
+                ];
+            }
+
             $assets = [
                 ...$assets,
                 $asset,
-                ...$this->cssFilesToAssets($chunk->getCss(), $chunk, $manifest),
+                ...$cssAssets,
             ];
         }
 
@@ -106,38 +123,39 @@ class ViteManifestLoader extends AbstractWebpackLoader
     }
 
     /**
-     * @param list<string>     $files
+     * @param Asset            $asset
      * @param ChunkInterface   $chunk
      * @param ViteManifestFile $manifest
      *
      * @return list<Asset>
      */
-    private function cssFilesToAssets(
-        array $files,
+    private function getCssAssets(
+        Asset $asset,
         ChunkInterface $chunk,
         ViteManifestFile $manifest
     ): array {
         $assets = [];
 
-        foreach ($files as $file) {
-            $fileChunk = $manifest->getChunkByFileName($file);
-
-            if ($fileChunk === null) {
-                $src = str_replace(
-                    pathinfo($chunk->getSource(), PATHINFO_EXTENSION),
-                    'css',
-                    $chunk->getSource()
-                );
-                $fileChunk = $this->chunkBuilder->build($src, ['file' => $file, 'src' => $src]);
+        foreach ($chunk->getCss() as $file) {
+            $fileName = pathinfo($file, PATHINFO_FILENAME);
+            // Remove hash from file name.
+            $fileNameWithoutHash = $this->fileNameWithoutHash($fileName);
+            // Generate handle based on handle of asset requiring this css file
+            $handle = $asset->handle() . '-css';
+            if (!str_ends_with($asset->handle(), $fileNameWithoutHash)) {
+                $handle .= '-' . $fileNameWithoutHash;
             }
+            $sanitizedFile = $this->sanitizeFileName($file);
+            // Try loading the asset from the vite dev server if it exists there.
+            $fileUrl = $this->getHotAssetUrl($sanitizedFile) ?? $manifest->getAssetBaseUrl() . $sanitizedFile;
+            $filePath = $manifest->getAssetBasePath() . $sanitizedFile;
+            $cssAsset = $this->buildAsset($handle, $fileUrl, $filePath);
 
-            $asset = $this->assetFromChunk($fileChunk, $manifest);
-
-            if ($asset === null) {
+            if ($cssAsset === null) {
                 continue;
             }
 
-            $assets[] = $asset;
+            $assets[] = $cssAsset;
         }
 
         return $assets;
@@ -283,5 +301,14 @@ class ViteManifestLoader extends AbstractWebpackLoader
         }
 
         return null;
+    }
+
+    private function fileNameWithoutHash(string $fileName): string
+    {
+        $fileNameWithoutHash = preg_replace('/-(.{8})$/', '', $fileName);
+
+        return is_string($fileNameWithoutHash) && $fileNameWithoutHash !== ''
+            ? $fileNameWithoutHash
+            : $fileName;
     }
 }

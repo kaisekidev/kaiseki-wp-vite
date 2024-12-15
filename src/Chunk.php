@@ -43,6 +43,11 @@ class Chunk implements ChunkInterface
         return $this->data['file'] ?? '';
     }
 
+    public function getImports(): array
+    {
+        return $this->data['imports'] ?? [];
+    }
+
     public function getSourceFileName(): string
     {
         return pathinfo($this->getSource(), PATHINFO_FILENAME);

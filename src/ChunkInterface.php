@@ -37,6 +37,11 @@ interface ChunkInterface
 
     public function getFile(): string;
 
+    /**
+     * @return list<string>
+     */
+    public function getImports(): array;
+
     public function getSource(): string;
 
     public function getSourceFileName(): string;
