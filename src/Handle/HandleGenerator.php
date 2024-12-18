@@ -18,6 +18,6 @@ final class HandleGenerator implements HandleGeneratorInterface
 
     public function generate(ChunkInterface $chunk, string $resource): string
     {
-        return $this->prefix . pathinfo($chunk->getSourceFileName(), PATHINFO_FILENAME);
+        return $this->prefix . $chunk->getSourceFileName();
     }
 }
