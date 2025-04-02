@@ -13,6 +13,7 @@ use Kaiseki\WordPress\Vite\Handle\HandleGeneratorInterface;
 use Psr\Container\ContainerInterface;
 
 use function array_map;
+use function is_array;
 use function is_bool;
 
 /**
@@ -26,20 +27,24 @@ final class ViteManifestLoaderFactory
     {
         $config = Config::fromContainer($container);
 
-        /** @var list<class-string<ScriptFilterType>|ScriptFilterType> $scriptFilter */
-        $scriptFilter = $config->array('vite.script_filter');
-        /** @var array<string, bool|list<class-string<ScriptFilterType>|ScriptFilterType>> $scriptSettings */
+        /** @var ScriptFilterType|list<class-string<ScriptFilterType>|ScriptFilterType> $scriptFilter */
+        $scriptFilter = $config->get('vite.script_filter');
+        /** @var array<string, bool|list<class-string<ScriptFilterType>|ScriptFilterType>|ScriptFilterType> $scriptSettings */
         $scriptSettings = $config->array('vite.scripts');
 
-        /** @var list<class-string<StyleFilterType>|StyleFilterType> $styleFilter */
-        $styleFilter = $config->array('vite.style_filter');
-        /** @var array<string, bool|list<class-string<StyleFilterType>|StyleFilterType>> $styleSettings */
+        /** @var StyleFilterType|list<class-string<StyleFilterType>|StyleFilterType> $styleFilter */
+        $styleFilter = $config->get('vite.style_filter');
+        /** @var array<string, bool|list<class-string<StyleFilterType>|StyleFilterType>|StyleFilterType> $styleSettings */
         $styleSettings = $config->array('vite.styles');
 
         return new ViteManifestLoader(
-            $this->initAssetFilterPipeline($scriptFilter, $container),
+            $scriptFilter instanceof AssetFilterInterface || $scriptFilter instanceof ScriptFilterInterface
+                ? $scriptFilter
+                : $this->initAssetFilterPipeline($scriptFilter, $container),
             $this->initAssetFilterPipelines($scriptSettings, $container),
-            $this->initAssetFilterPipeline($styleFilter, $container),
+            $styleFilter instanceof AssetFilterInterface || $styleFilter instanceof StyleFilterInterface
+                ? $styleFilter
+                : $this->initAssetFilterPipeline($styleFilter, $container),
             $this->initAssetFilterPipelines($styleSettings, $container),
             $config->bool('vite.autoload', false),
             $container->get(ViteServerInterface::class),
@@ -48,7 +53,7 @@ final class ViteManifestLoaderFactory
     }
 
     /**
-     * @param array<string, bool|list<class-string<FilterType>|FilterType>> $filter
+     * @param array<string, bool|FilterType|list<class-string<FilterType>|FilterType>> $filter
      * @param ContainerInterface                                            $container
      *
      * @return array<string, AssetFilterInterface|bool>
@@ -58,9 +63,17 @@ final class ViteManifestLoaderFactory
         ContainerInterface $container
     ): array {
         return array_map(
-            fn(bool|array $value): bool|AssetFilterInterface => is_bool($value)
-                ? $value
-                : $this->initAssetFilterPipeline($value, $container),
+            function(bool|AssetFilterInterface|ScriptFilterInterface|StyleFilterInterface|array $value) use ($container): bool|AssetFilterInterface {
+                if (is_bool($value)) {
+                    return $value;
+                }
+
+                if (is_array($value)) {
+                    return $this->initAssetFilterPipeline($value, $container);
+                }
+
+                return new AssetFilterPipeline($value);
+            },
             $filter,
         );
     }
