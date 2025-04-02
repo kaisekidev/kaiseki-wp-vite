@@ -8,7 +8,7 @@ use Inpsyde\Assets\Asset;
 use Kaiseki\WordPress\Vite\ChunkInterface;
 
 /**
- * @deprecated Use ScriptFilter::create()->forCustomizerLocation() instead.
+ * @deprecated use ScriptFilter::create()->forCustomizerLocation() instead
  */
 final class CustomizerLocationFilter implements AssetFilterInterface
 {

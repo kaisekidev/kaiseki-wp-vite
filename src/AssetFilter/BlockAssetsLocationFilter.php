@@ -8,7 +8,7 @@ use Inpsyde\Assets\Asset;
 use Kaiseki\WordPress\Vite\ChunkInterface;
 
 /**
- * @deprecated Use ScriptFilter::create()->forBlockAssetsLocation() instead.
+ * @deprecated use ScriptFilter::create()->forBlockAssetsLocation() instead
  */
 final class BlockAssetsLocationFilter implements AssetFilterInterface
 {

@@ -8,7 +8,7 @@ use Inpsyde\Assets\Asset;
 use Kaiseki\WordPress\Vite\ChunkInterface;
 
 /**
- * @deprecated Use ScriptFilter::create()->forBackendLocation() instead.
+ * @deprecated use ScriptFilter::create()->forBackendLocation() instead
  */
 final class BackendLocationFilter implements AssetFilterInterface
 {

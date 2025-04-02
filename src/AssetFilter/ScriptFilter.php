@@ -34,8 +34,6 @@ class ScriptFilter extends AbstractAssetFilter implements AssetFilterInterface
             return $asset;
         }
 
-        $asset = $this->prepareAsset($asset);
-
         foreach ($this->localize as $objectName => $data) {
             $asset = $asset->withLocalize($objectName, $data);
         }
@@ -54,6 +52,8 @@ class ScriptFilter extends AbstractAssetFilter implements AssetFilterInterface
                 $this->translationPath
             );
         }
+
+        $asset = $this->prepareAsset($asset);
 
         return $asset;
     }

@@ -33,8 +33,6 @@ class StyleFilter extends AbstractAssetFilter implements AssetFilterInterface
             return $asset;
         }
 
-        $asset = $this->prepareAsset($asset);
-
         foreach ($this->cssVars as $element => $vars) {
             $asset->withCssVars($element, $vars);
         }
@@ -46,6 +44,8 @@ class StyleFilter extends AbstractAssetFilter implements AssetFilterInterface
         if ($this->media !== null) {
             $asset->forMedia($this->media);
         }
+
+        $asset = $this->prepareAsset($asset);
 
         return $asset;
     }

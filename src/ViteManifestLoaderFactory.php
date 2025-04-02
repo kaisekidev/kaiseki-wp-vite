@@ -27,12 +27,12 @@ final class ViteManifestLoaderFactory
     {
         $config = Config::fromContainer($container);
 
-        /** @var ScriptFilterType|list<class-string<ScriptFilterType>|ScriptFilterType> $scriptFilter */
+        /** @var list<class-string<ScriptFilterType>|ScriptFilterType>|ScriptFilterType $scriptFilter */
         $scriptFilter = $config->get('vite.script_filter');
         /** @var array<string, bool|list<class-string<ScriptFilterType>|ScriptFilterType>|ScriptFilterType> $scriptSettings */
         $scriptSettings = $config->array('vite.scripts');
 
-        /** @var StyleFilterType|list<class-string<StyleFilterType>|StyleFilterType> $styleFilter */
+        /** @var list<class-string<StyleFilterType>|StyleFilterType>|StyleFilterType $styleFilter */
         $styleFilter = $config->get('vite.style_filter');
         /** @var array<string, bool|list<class-string<StyleFilterType>|StyleFilterType>|StyleFilterType> $styleSettings */
         $styleSettings = $config->array('vite.styles');
@@ -54,7 +54,7 @@ final class ViteManifestLoaderFactory
 
     /**
      * @param array<string, bool|FilterType|list<class-string<FilterType>|FilterType>> $filter
-     * @param ContainerInterface                                            $container
+     * @param ContainerInterface                                                       $container
      *
      * @return array<string, AssetFilterInterface|bool>
      */
@@ -63,7 +63,7 @@ final class ViteManifestLoaderFactory
         ContainerInterface $container
     ): array {
         return array_map(
-            function(bool|AssetFilterInterface|ScriptFilterInterface|StyleFilterInterface|array $value) use ($container): bool|AssetFilterInterface {
+            function (bool|AssetFilterInterface|ScriptFilterInterface|StyleFilterInterface|array $value) use ($container): bool|AssetFilterInterface {
                 if (is_bool($value)) {
                     return $value;
                 }

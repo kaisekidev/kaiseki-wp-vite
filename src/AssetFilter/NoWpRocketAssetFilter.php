@@ -8,7 +8,7 @@ use Inpsyde\Assets\Asset;
 use Kaiseki\WordPress\Vite\ChunkInterface;
 
 /**
- * @deprecated Use ScriptFilter::create()->useNoWpRocketFilter() instead.
+ * @deprecated use ScriptFilter::create()->useNoWpRocketFilter() instead
  */
 final class NoWpRocketAssetFilter implements AssetFilterInterface
 {
