@@ -7,6 +7,9 @@ namespace Kaiseki\WordPress\Vite\AssetFilter;
 use Inpsyde\Assets\Asset;
 use Kaiseki\WordPress\Vite\ChunkInterface;
 
+/**
+ * @deprecated Use ScriptFilter::create()->forLocation(int $location) instead.
+ */
 final class LocationFilter implements AssetFilterInterface
 {
     public function __construct(private readonly int $location)

@@ -7,6 +7,9 @@ namespace Kaiseki\WordPress\Vite\AssetFilter;
 use Inpsyde\Assets\Asset;
 use Kaiseki\WordPress\Vite\ChunkInterface;
 
+/**
+ * @deprecated Use ScriptFilter::create()->forLoginLocation() instead.
+ */
 final class LoginLocationFilter implements AssetFilterInterface
 {
     /**
