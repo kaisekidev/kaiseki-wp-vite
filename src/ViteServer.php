@@ -11,6 +11,7 @@ use Throwable;
 
 use function is_bool;
 use function sprintf;
+use function str_starts_with;
 use function trailingslashit;
 
 final class ViteServer implements ViteServerInterface
@@ -39,7 +40,8 @@ final class ViteServer implements ViteServerInterface
     public function getServerUrl(): string
     {
         return sprintf(
-            'http://%s:%s/',
+            '%s%s:%s/',
+            str_starts_with($this->host, 'http') ? '' : 'http://',
             $this->host,
             $this->port,
         );
