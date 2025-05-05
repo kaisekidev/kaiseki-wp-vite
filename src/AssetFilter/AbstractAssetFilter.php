@@ -59,7 +59,7 @@ abstract class AbstractAssetFilter
         }
 
         if ($this->filters !== []) {
-            $this->withFilters(...$this->filters);
+            $asset = $asset->withFilters(...$this->filters);
         }
 
         return $asset;
