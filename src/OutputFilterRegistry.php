@@ -35,11 +35,13 @@ class OutputFilterRegistry implements HookProviderInterface
         $handlers = $assetManager->handlers();
 
         foreach ($handlers as $handler) {
-            /** @phpstan-ignore-next-line */
+            if (!method_exists($handler, 'withOutputFilter')) {
+                continue;
+            }
+
             $handler->withOutputFilter(ModuleTypeScriptOutputFilter::class, new ModuleTypeScriptOutputFilter());
 
             foreach ($this->outputFilters as $name => $filter) {
-                /** @phpstan-ignore-next-line */
                 $handler->withOutputFilter($name, $filter);
             }
         }

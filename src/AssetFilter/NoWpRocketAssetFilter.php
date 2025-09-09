@@ -20,6 +20,10 @@ final class NoWpRocketAssetFilter implements AssetFilterInterface
      */
     public function __invoke(Asset $asset, ChunkInterface $chunk): ?Asset
     {
+        if (!method_exists($asset, 'withAttributes')) {
+            return $asset;
+        }
+
         return $asset->withAttributes([
             'nowprocket' => 'true',
         ]);

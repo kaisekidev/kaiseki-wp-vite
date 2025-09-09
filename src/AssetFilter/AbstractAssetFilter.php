@@ -34,7 +34,7 @@ abstract class AbstractAssetFilter
 
     protected function prepareAsset(Asset $asset): Asset
     {
-        if ($this->attributes !== []) {
+        if ($this->attributes !== [] && method_exists($asset, 'withAttributes')) {
             $asset = $asset->withAttributes($this->attributes);
         }
 
