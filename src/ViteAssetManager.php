@@ -11,6 +11,7 @@ use Kaiseki\WordPress\Vite\ManifestFileLoader\ManifestFileLoaderInterface;
 
 use function add_action;
 use function array_merge;
+use function array_values;
 
 class ViteAssetManager implements HookProviderInterface
 {
@@ -66,6 +67,6 @@ class ViteAssetManager implements HookProviderInterface
             $assets = array_merge($assets, $this->loader->load($manifest));
         }
 
-        return $assets;
+        return array_values($assets);
     }
 }

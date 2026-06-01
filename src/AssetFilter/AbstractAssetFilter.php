@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Kaiseki\WordPress\Vite\AssetFilter;
 
 use Inpsyde\Assets\Asset;
+use Inpsyde\Assets\DataAwareAsset;
+use Inpsyde\Assets\FilterAwareAsset;
 use Inpsyde\Assets\OutputFilter\AssetOutputFilter;
 use Inpsyde\Assets\OutputFilter\InlineAssetOutputFilter;
 
@@ -34,11 +36,11 @@ abstract class AbstractAssetFilter
 
     protected function prepareAsset(Asset $asset): Asset
     {
-        if ($this->attributes !== [] && method_exists($asset, 'withAttributes')) {
+        if ($this->attributes !== [] && $asset instanceof FilterAwareAsset) {
             $asset = $asset->withAttributes($this->attributes);
         }
 
-        if ($this->condition !== null) {
+        if ($this->condition !== null && $asset instanceof DataAwareAsset) {
             $asset = $asset->withCondition($this->condition);
         }
 
@@ -54,11 +56,9 @@ abstract class AbstractAssetFilter
             $asset = $asset->forLocation($this->location);
         }
 
-        if ($this->enqueue !== null) {
-            $asset = $asset->canEnqueue($this->enqueue);
-        }
+        $asset = $asset->canEnqueue($this->enqueue);
 
-        if ($this->filters !== []) {
+        if ($this->filters !== [] && $asset instanceof FilterAwareAsset) {
             $asset = $asset->withFilters(...$this->filters);
         }
 

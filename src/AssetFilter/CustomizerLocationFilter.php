@@ -16,9 +16,9 @@ final class CustomizerLocationFilter implements AssetFilterInterface
      * @param Asset          $asset
      * @param ChunkInterface $chunk
      *
-     * @return Asset|null
+     * @return Asset
      */
-    public function __invoke(Asset $asset, ChunkInterface $chunk): ?Asset
+    public function __invoke(Asset $asset, ChunkInterface $chunk): Asset
     {
         return $asset->forLocation(Asset::CUSTOMIZER);
     }

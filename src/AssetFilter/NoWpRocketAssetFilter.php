@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Kaiseki\WordPress\Vite\AssetFilter;
 
 use Inpsyde\Assets\Asset;
+use Inpsyde\Assets\FilterAwareAsset;
 use Kaiseki\WordPress\Vite\ChunkInterface;
 
 /**
@@ -16,11 +17,11 @@ final class NoWpRocketAssetFilter implements AssetFilterInterface
      * @param Asset          $asset
      * @param ChunkInterface $chunk
      *
-     * @return Asset|null
+     * @return Asset
      */
-    public function __invoke(Asset $asset, ChunkInterface $chunk): ?Asset
+    public function __invoke(Asset $asset, ChunkInterface $chunk): Asset
     {
-        if (!method_exists($asset, 'withAttributes')) {
+        if (!$asset instanceof FilterAwareAsset) {
             return $asset;
         }
 

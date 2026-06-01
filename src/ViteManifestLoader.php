@@ -28,9 +28,6 @@ use function trailingslashit;
 
 use const PATHINFO_FILENAME;
 
-/**
- * @phpstan-import-type ChunkData from ChunkInterface
- */
 class ViteManifestLoader extends AbstractWebpackLoader
 {
     private ChunkBuilder $chunkBuilder;
@@ -69,7 +66,6 @@ class ViteManifestLoader extends AbstractWebpackLoader
      */
     protected function parseData(array $data, string $resource): array
     {
-        // @phpstan-ignore-next-line
         $manifest = new ViteManifestFile($resource, $data);
 
         if ($manifest->isValid() === false) {
@@ -102,10 +98,11 @@ class ViteManifestLoader extends AbstractWebpackLoader
                 : [];
 
             foreach ($chunk->getImports() as $import) {
-                if (!isset($manifest->data[$import])) {
+                $importData = $manifest->data[$import] ?? null;
+                if (!is_array($importData)) {
                     continue;
                 }
-                $importChunk = $this->chunkBuilder->build($import, $manifest->data[$import]);
+                $importChunk = $this->chunkBuilder->build($import, $importData);
                 $cssAssets = [
                     ...$cssAssets,
                     ...$this->getCssAssets($asset, $importChunk, $manifest),
@@ -201,7 +198,6 @@ class ViteManifestLoader extends AbstractWebpackLoader
             'tsx' => Script::class,
         ];
 
-        /** @var array{filename?:string, extension?:string} $pathInfo */
         $pathInfo = pathinfo($filePath);
         $filename = $pathInfo['filename'] ?? '';
         $extension = $pathInfo['extension'] ?? '';

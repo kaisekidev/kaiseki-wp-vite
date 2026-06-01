@@ -49,8 +49,7 @@ class Config
      */
     public function addScriptsFilter(string|AssetFilterInterface|ScriptFilterInterface ...$filter): self
     {
-        // @phpstan-ignore-next-line
-        $this->scriptFilter[] = [
+        $this->scriptFilter = [
             ...$this->scriptFilter,
             ...$filter,
         ];
@@ -85,8 +84,7 @@ class Config
      */
     public function addStylesFilter(string|AssetFilterInterface|StyleFilterInterface ...$filter): self
     {
-        // @phpstan-ignore-next-line
-        $this->styleFilter[] = [
+        $this->styleFilter = [
             ...$this->styleFilter,
             ...$filter,
         ];
@@ -155,8 +153,8 @@ class Config
      *     manifests: ManifestFileLoaderInterface[],
      *     script_filter: array<class-string<ScriptFilterType>|ScriptFilterType>,
      *     style_filter: array<class-string<StyleFilterType>|StyleFilterType>,
-     *     scripts: array<string, bool|array<class-string<ScriptFilterType>|ScriptFilterType>>,
-     *     styles: array<string, bool|array<class-string<StyleFilterType>|StyleFilterType>>,
+     *     scripts: array<string, array<class-string<ScriptFilterType>|ScriptFilterType>|bool>,
+     *     styles: array<string, array<class-string<StyleFilterType>|StyleFilterType>|bool>,
      *     handle_prefix?: string|null,
      *     client?: array{host?: string, port?: int}|null,
      *     autoload?: bool|null,

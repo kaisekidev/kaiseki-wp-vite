@@ -7,13 +7,11 @@ namespace Kaiseki\WordPress\Vite;
 use function content_url;
 use function defined;
 use function dirname;
+use function is_array;
 use function str_replace;
 use function strpos;
 use function trailingslashit;
 
-/**
- * @phpstan-import-type ChunkData from ChunkInterface
- */
 class ViteManifestFile
 {
     private string $assetBasePath;
@@ -21,8 +19,8 @@ class ViteManifestFile
     private ChunkBuilder $chunkBuilder;
 
     /**
-     * @param string                   $manifestPath
-     * @param array<string, ChunkData> $data
+     * @param string               $manifestPath
+     * @param array<string, mixed> $data
      */
     public function __construct(
         public readonly string $manifestPath,
@@ -51,7 +49,7 @@ class ViteManifestFile
     public function getChunkByFileName(string $fileName): ?ChunkInterface
     {
         foreach ($this->data as $chunkName => $chunkData) {
-            if (isset($chunkData['file']) && $chunkData['file'] === $fileName) {
+            if (is_array($chunkData) && ($chunkData['file'] ?? null) === $fileName) {
                 return $this->chunkBuilder->build($chunkName, $chunkData);
             }
         }
