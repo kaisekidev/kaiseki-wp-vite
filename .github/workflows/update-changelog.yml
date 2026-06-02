@@ -1,0 +1,28 @@
+# Thin caller for the shared "Update Changelog" reusable workflow.
+#
+# On a published GitHub Release, the reusable workflow in kaisekidev/.github
+# updates CHANGELOG.md from the release notes and opens an auto-merging PR. All
+# the action pins live in that reusable workflow, so there is nothing here for
+# Dependabot to bump.
+#
+# `secrets: inherit` forwards the org APP_ID / APP_PRIVATE_KEY secrets, which the
+# reusable workflow uses to mint a short-lived kaiseki-doc-bot GitHub App token
+# (the org blocks the default GITHUB_TOKEN from opening PRs, so an App token is
+# required to open the changelog PR and trigger its checks).
+#
+# One-time prerequisites (set once, org-wide):
+#   1. The kaiseki-doc-bot App (contents + pull-requests: write) can access the repo.
+#   2. The APP_ID / APP_PRIVATE_KEY org secrets are readable by the repo.
+#   3. "Allow auto-merge" is enabled (gh repo edit <repo> --enable-auto-merge) so
+#      the PR merges hands-off; if off, it just waits for a one-click manual merge.
+
+name: Update Changelog
+
+on:
+  release:
+    types: [released]
+
+jobs:
+  update:
+    uses: kaisekidev/.github/.github/workflows/update-changelog.yml@v1
+    secrets: inherit
