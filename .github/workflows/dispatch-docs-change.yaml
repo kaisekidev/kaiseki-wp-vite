@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Repository Dispatch
-        uses: peter-evans/repository-dispatch@v1
+        uses: peter-evans/repository-dispatch@v4
         with:
           token: ${{ secrets.DISPATCH_PAT }}
           repository: kaisekidev/kaiseki.dev
