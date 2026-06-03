@@ -10,6 +10,7 @@ use Kaiseki\WordPress\Hook\HookProviderInterface;
 use Kaiseki\WordPress\Vite\OutputFilter\ModuleTypeScriptOutputFilter;
 
 use function add_action;
+use function method_exists;
 
 class OutputFilterRegistry implements HookProviderInterface
 {

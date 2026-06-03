@@ -201,7 +201,6 @@ class ViteManifestLoader extends AbstractWebpackLoader
             'tsx' => Script::class,
         ];
 
-        /** @var array{filename?:string, extension?:string} $pathInfo */
         $pathInfo = pathinfo($filePath);
         $filename = $pathInfo['filename'] ?? '';
         $extension = $pathInfo['extension'] ?? '';
