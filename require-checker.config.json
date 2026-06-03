@@ -6,12 +6,9 @@
         "add_action",
         "content_url",
         "get_current_screen",
-        "get_stylesheet_directory_uri",
         "is_admin",
-        "plugin_dir_url",
         "trailingslashit",
-        "WP_CONTENT_DIR",
-        "wp_remote_get"
+        "WP_CONTENT_DIR"
     ],
     "php-core-extensions" : [
         "Core",

@@ -5,11 +5,12 @@ declare(strict_types=1);
 namespace Kaiseki\WordPress\Vite\AssetFilter;
 
 use Inpsyde\Assets\Asset;
+use Inpsyde\Assets\DataAwareAsset;
+use Inpsyde\Assets\FilterAwareAsset;
 use Inpsyde\Assets\OutputFilter\AssetOutputFilter;
 use Inpsyde\Assets\OutputFilter\InlineAssetOutputFilter;
 
 use function array_merge;
-use function method_exists;
 
 abstract class AbstractAssetFilter
 {
@@ -35,18 +36,12 @@ abstract class AbstractAssetFilter
 
     protected function prepareAsset(Asset $asset): Asset
     {
-        if ($this->attributes !== [] && method_exists($asset, 'withAttributes')) {
-            $withAttributes = $asset->withAttributes($this->attributes);
-            if ($withAttributes instanceof Asset) {
-                $asset = $withAttributes;
-            }
+        if ($this->attributes !== [] && $asset instanceof FilterAwareAsset) {
+            $asset = $asset->withAttributes($this->attributes);
         }
 
-        if ($this->condition !== null && method_exists($asset, 'withCondition')) {
-            $withCondition = $asset->withCondition($this->condition);
-            if ($withCondition instanceof Asset) {
-                $asset = $withCondition;
-            }
+        if ($this->condition !== null && $asset instanceof DataAwareAsset) {
+            $asset = $asset->withCondition($this->condition);
         }
 
         if ($this->dependencies !== []) {
@@ -61,15 +56,10 @@ abstract class AbstractAssetFilter
             $asset = $asset->forLocation($this->location);
         }
 
-        if ($this->enqueue !== null) {
-            $asset = $asset->canEnqueue($this->enqueue);
-        }
+        $asset = $asset->canEnqueue($this->enqueue);
 
-        if ($this->filters !== [] && method_exists($asset, 'withFilters')) {
-            $withFilters = $asset->withFilters(...$this->filters);
-            if ($withFilters instanceof Asset) {
-                $asset = $withFilters;
-            }
+        if ($this->filters !== [] && $asset instanceof FilterAwareAsset) {
+            $asset = $asset->withFilters(...$this->filters);
         }
 
         return $asset;

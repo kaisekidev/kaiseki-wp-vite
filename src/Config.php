@@ -49,8 +49,7 @@ class Config
      */
     public function addScriptsFilter(string|AssetFilterInterface|ScriptFilterInterface ...$filter): self
     {
-        // @phpstan-ignore-next-line
-        $this->scriptFilter[] = [
+        $this->scriptFilter = [
             ...$this->scriptFilter,
             ...$filter,
         ];
@@ -85,8 +84,7 @@ class Config
      */
     public function addStylesFilter(string|AssetFilterInterface|StyleFilterInterface ...$filter): self
     {
-        // @phpstan-ignore-next-line
-        $this->styleFilter[] = [
+        $this->styleFilter = [
             ...$this->styleFilter,
             ...$filter,
         ];

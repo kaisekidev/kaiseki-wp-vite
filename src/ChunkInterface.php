@@ -8,23 +8,11 @@ namespace Kaiseki\WordPress\Vite;
  * Implementation of Vite manifest.json parsing into Assets.
  *
  * @link https://vitejs.dev/guide/backend-integration.html
- *
- * @phpstan-type ChunkData array{
- *     src?: string,
- *     file: string,
- *     name?: string,
- *     css?: array<string>,
- *     assets?: array<string>,
- *     isEntry?: bool,
- *     isDynamicEntry?: bool,
- *     imports?: array<string>,
- *     dynamicImports?: array<string>,
- * }
  */
 interface ChunkInterface
 {
     /**
-     * @return ChunkData
+     * @return array<array-key, mixed>
      */
     public function getChunkData(): array;
 
