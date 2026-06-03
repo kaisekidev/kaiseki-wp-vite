@@ -9,6 +9,7 @@ use Inpsyde\Assets\OutputFilter\AssetOutputFilter;
 use Inpsyde\Assets\OutputFilter\InlineAssetOutputFilter;
 
 use function array_merge;
+use function method_exists;
 
 abstract class AbstractAssetFilter
 {
@@ -35,11 +36,17 @@ abstract class AbstractAssetFilter
     protected function prepareAsset(Asset $asset): Asset
     {
         if ($this->attributes !== [] && method_exists($asset, 'withAttributes')) {
-            $asset = $asset->withAttributes($this->attributes);
+            $withAttributes = $asset->withAttributes($this->attributes);
+            if ($withAttributes instanceof Asset) {
+                $asset = $withAttributes;
+            }
         }
 
-        if ($this->condition !== null) {
-            $asset = $asset->withCondition($this->condition);
+        if ($this->condition !== null && method_exists($asset, 'withCondition')) {
+            $withCondition = $asset->withCondition($this->condition);
+            if ($withCondition instanceof Asset) {
+                $asset = $withCondition;
+            }
         }
 
         if ($this->dependencies !== []) {
@@ -58,8 +65,11 @@ abstract class AbstractAssetFilter
             $asset = $asset->canEnqueue($this->enqueue);
         }
 
-        if ($this->filters !== []) {
-            $asset = $asset->withFilters(...$this->filters);
+        if ($this->filters !== [] && method_exists($asset, 'withFilters')) {
+            $withFilters = $asset->withFilters(...$this->filters);
+            if ($withFilters instanceof Asset) {
+                $asset = $withFilters;
+            }
         }
 
         return $asset;

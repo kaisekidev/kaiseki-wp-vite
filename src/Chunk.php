@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Kaiseki\WordPress\Vite;
 
+use function array_values;
 use function pathinfo;
 
 use const PATHINFO_FILENAME;
@@ -35,7 +36,7 @@ class Chunk implements ChunkInterface
 
     public function getCss(): array
     {
-        return $this->data['css'] ?? [];
+        return array_values($this->data['css'] ?? []);
     }
 
     public function getFile(): string
@@ -45,7 +46,7 @@ class Chunk implements ChunkInterface
 
     public function getImports(): array
     {
-        return $this->data['imports'] ?? [];
+        return array_values($this->data['imports'] ?? []);
     }
 
     public function getSourceFileName(): string
