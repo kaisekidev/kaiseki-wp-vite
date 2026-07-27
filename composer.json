@@ -30,7 +30,7 @@
   },
   "require": {
     "php": "^8.2",
-    "guzzlehttp/guzzle": "^7.4.5",
+    "guzzlehttp/guzzle": "^7.4.5 || ^8.0.0",
     "inpsyde/assets": "^2.8",
     "kaiseki/config": "^2.0",
     "kaiseki/wp-env": "^1.0",
