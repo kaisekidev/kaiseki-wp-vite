@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 1.1.0 - 2026-11-03
+
+### What's Changed
+
+* chore(ci): bump create-github-app-token to v3 in notify-site by @wolfgangschaefer in https://github.com/kaisekidev/kaiseki-wp-vite/pull/5
+* chore(ci): adopt notify-site reusable workflow and harden changelog caller by @wolfgangschaefer in https://github.com/kaisekidev/kaiseki-wp-vite/pull/6
+* chore(deps): adopt area:* labels and trim dead dependabot ignores by @wolfgangschaefer in https://github.com/kaisekidev/kaiseki-wp-vite/pull/7
+* feat: add forBlockEditorCanvasLocation() to asset filters by @davidmondok in https://github.com/kaisekidev/kaiseki-wp-vite/pull/10
+
+### New Contributors
+
+* @davidmondok made their first contribution in https://github.com/kaisekidev/kaiseki-wp-vite/pull/10
+
+**Full Changelog**: https://github.com/kaisekidev/kaiseki-wp-vite/compare/1.0.0...1.1.0
+
 ## 1.0.0 - 2026-06-01
 
 First tagged release, migrated onto the kaiseki PHP 8.4 baseline.
