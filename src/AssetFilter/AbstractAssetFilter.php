@@ -11,6 +11,8 @@ use Inpsyde\Assets\OutputFilter\AssetOutputFilter;
 use Inpsyde\Assets\OutputFilter\InlineAssetOutputFilter;
 
 use function array_merge;
+use function is_admin;
+use function is_callable;
 
 abstract class AbstractAssetFilter
 {
@@ -29,6 +31,8 @@ abstract class AbstractAssetFilter
     protected array $filters = [];
 
     protected ?int $location = null;
+
+    protected bool $adminOnly = false;
 
     protected ?string $version = null;
 
@@ -56,7 +60,7 @@ abstract class AbstractAssetFilter
             $asset = $asset->forLocation($this->location);
         }
 
-        $asset = $asset->canEnqueue($this->enqueue);
+        $asset = $asset->canEnqueue($this->adminOnly ? $this->enqueueInAdminOnly($this->enqueue) : $this->enqueue);
 
         if ($this->filters !== [] && $asset instanceof FilterAwareAsset) {
             $asset = $asset->withFilters(...$this->filters);
@@ -68,6 +72,7 @@ abstract class AbstractAssetFilter
     public function forLocation(int $location): self
     {
         $this->location = $location;
+        $this->adminOnly = false;
 
         return $this;
     }
@@ -90,6 +95,19 @@ abstract class AbstractAssetFilter
     public function forBlockEditorLocation(): self
     {
         return $this->forLocation(Asset::BLOCK_EDITOR_ASSETS);
+    }
+
+    /**
+     * The block editor content (canvas). Since WordPress 7.1 it always renders in an iframe, and only
+     * assets enqueued on enqueue_block_assets reach it. That hook also runs on the frontend, so the
+     * asset is enqueued in the admin only. A canEnqueue() condition still applies on top.
+     */
+    public function forBlockEditorCanvasLocation(): self
+    {
+        $this->forLocation(Asset::BLOCK_ASSETS);
+        $this->adminOnly = true;
+
+        return $this;
     }
 
     public function forCustomizerLocation(): self
@@ -165,5 +183,15 @@ abstract class AbstractAssetFilter
         ]);
 
         return $this;
+    }
+
+    /**
+     * @param bool|callable(): bool $enqueue
+     *
+     * @return callable(): bool
+     */
+    private function enqueueInAdminOnly(bool|callable $enqueue): callable
+    {
+        return static fn(): bool => is_admin() && (is_callable($enqueue) ? (bool)$enqueue() : $enqueue);
     }
 }
