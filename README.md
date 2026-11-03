@@ -53,6 +53,18 @@ return [
 ];
 ```
 
+### Block editor canvas
+
+Since WordPress 7.1 the block editor content always renders in an iframe. Assets for the block
+editor UI stay on `forBlockEditorLocation()` (`enqueue_block_editor_assets`), but they do not reach
+the iframe. Styles and scripts for the content itself use `forBlockEditorCanvasLocation()`: it
+enqueues on `enqueue_block_assets`, which WordPress copies into the iframe, and only in the admin,
+because that hook also runs on the frontend. A `canEnqueue()` condition still applies on top.
+
+```php
+->addStyleFilter('resources/editor.scss', StyleFilter::create()->forBlockEditorCanvasLocation())
+```
+
 `ConfigProvider::__invoke()` ships sensible defaults (an empty `vite` config plus the dependency
 aliases and factories) — merge it into your aggregator so the providers resolve from the container.
 Each asset is loaded from the Vite dev server when it is reachable, and falls back to the built file
